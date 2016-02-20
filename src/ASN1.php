@@ -706,7 +706,9 @@ class ASN1
             case self::TYPE_UTC_TIME:
             case self::TYPE_GENERALIZED_TIME:
                 $current['content'] = $content;
+                break;
             default:
+                break;
         }
 
         $start+= $length;
