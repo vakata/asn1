@@ -137,7 +137,8 @@ class ASN1
      * @param  integer     $base   the base to convert to (optional, defaults to 10)
      * @return integer             the converted number
      */
-    public static function fromBase256($string, $base = 10) {
+    public static function fromBase256($string, $base = 10)
+    {
         $number = "";
         for ($i = 0; $i < strlen($string); $i++) {
             $number .= str_pad(base_convert(ord($string{$i}), 10, 2), 8, "0", STR_PAD_LEFT);
@@ -202,20 +203,13 @@ class ASN1
 
                     // if isset($child['constant']) is true then isset($child['optional']) should be true as well
                     if (isset($child['constant'])) {
-                        /*
-                           From X.680-0207.pdf#page=58 (30.6):
-
-                           "The tagging construction specifies explicit tagging if any of the following holds:
-                            ...
-                            c) the "Tag Type" alternative is used and the value of "TagDefault" for the module is IMPLICIT TAGS or
-                            AUTOMATIC TAGS, but the type defined by "Type" is an untagged choice type, an untagged open type, or
-                            an untagged "DummyReference" (see ITU-T Rec. X.683 | ISO/IEC 8824-4, 8.3)."
-                         */
                         if (isset($child['explicit']) || $child['type'] == static::TYPE_CHOICE) {
                             $subtag = chr((static::CLASS_CONTEXT_SPECIFIC << 6) | 0x20 | $child['constant']);
                             $temp = $subtag . static::encodeLength(strlen($temp)) . $temp;
                         } else {
-                            $subtag = chr((static::CLASS_CONTEXT_SPECIFIC << 6) | (ord($temp[0]) & 0x20) | $child['constant']);
+                            $subtag = chr(
+                                (static::CLASS_CONTEXT_SPECIFIC << 6) | (ord($temp[0]) & 0x20) | $child['constant']
+                            );
                             $temp = $subtag . substr($temp, 1);
                         }
                     }
@@ -313,6 +307,7 @@ class ASN1
 
                     break;
                 }
+                // default to octet string if no mapping is present
             case static::TYPE_OCTET_STRING:
                 /* The initial octet shall encode, as an unsigned binary integer with bit 1 as the least significant bit,
                    the number of unused bits in the final subsequent octet. The number shall be in the range zero to seven.
@@ -358,6 +353,7 @@ class ASN1
                     default:
                         throw new ASN1Exception('Unrecognized type');
                 }
+                break;
             case static::TYPE_NULL:
                 $value = '';
                 break;
@@ -403,16 +399,16 @@ class ASN1
      */
     public static function decodeDER($encoded, array $mapping = null)
     {
-        $decoded = static::_decode($encoded);
+        $decoded = static::decode($encoded);
         if (!$mapping) {
             return $decoded;
         }
         $result = null;
-        static::_map($decoded, $mapping, $result);
+        static::map($decoded, $mapping, $result);
         return $result;
     }
 
-    protected static function _map($decoded, $mapping, &$result)
+    protected static function map($decoded, $mapping, &$result)
     {
         if (in_array($mapping['type'], [ASN1::TYPE_SEQUENCE, ASN1::TYPE_SET]) &&
             in_array($decoded['type'], [ASN1::TYPE_SEQUENCE, ASN1::TYPE_SET])) {
@@ -420,8 +416,6 @@ class ASN1
         }
         if ($mapping['type'] !== $decoded['type']) {
             if (!$mapping['optional']) {
-                var_dump($mapping);
-                var_dump($decoded); die();
                 throw new ASN1Exception('Decoded data does not match mapping');
             }
             return false;
@@ -434,7 +428,7 @@ class ASN1
                 $i = 0;
                 foreach ($mapping['children'] as $k => $v) {
                     $result[$k] = null;
-                    if (static::_map($decoded['content'][$i], $v, $result[$k])) {
+                    if (static::map($decoded['content'][$i], $v, $result[$k])) {
                         $i++;
                     }
                 }
@@ -444,7 +438,7 @@ class ASN1
                 $i = 0;
                 foreach ($mapping['children'] as $k => $v) {
                     $result[$k] = null;
-                    if (static::_map($decoded['content'][$i], $v, $result[$k])) {
+                    if (static::map($decoded['content'][$i], $v, $result[$k])) {
                         $i++;
                     }
                 }
@@ -468,7 +462,7 @@ class ASN1
         return true;
     }
 
-    protected static function _decode($encoded, $start = 0)
+    protected static function decode($encoded, $start = 0)
     {
         $current = array('start' => $start);
 
@@ -544,7 +538,7 @@ class ASN1
                 $newcontent = array();
                 $remainingLength = $length;
                 while ($remainingLength > 0) {
-                    $temp = static::_decode($content, $start);
+                    $temp = static::decode($content, $start);
                     $length = $temp['length'];
                     // end-of-content octets - see paragraph 8.1.5
                     if (substr($content, $length, 2) == "\0\0") {
@@ -587,16 +581,17 @@ class ASN1
             case self::TYPE_ENUMERATED:
                 $current['content'] = static::fromBase256($content);
                 break;
-            case self::TYPE_REAL: // not currently supported
+            case self::TYPE_REAL:
+                // not currently supported
                 return false;
             case self::TYPE_BIT_STRING:
-                // The initial octet shall encode, as an unsigned binary integer with bit 1 as the least significant bit,
-                // the number of unused bits in the final subsequent octet. The number shall be in the range zero to
-                // seven.
+                // The initial octet shall encode, as an unsigned binary integer with bit 1 as the least significant
+                // bit, the number of unused bits in the final subsequent octet. The number shall be in the range zero
+                // to seven.
                 if (!$constructed) {
                     $current['content'] = $content;
                 } else {
-                    $temp = static::_decode($content, $start);
+                    $temp = static::decode($content, $start);
                     $length-= strlen($content);
                     $last = count($temp) - 1;
                     for ($i = 0; $i < $last; $i++) {
@@ -610,7 +605,9 @@ class ASN1
                     //if ($temp[$last]['type'] != self::TYPE_BIT_STRING) {
                     //    return false;
                     //}
-                    $current['content'] = $temp[$last]['content'][0] . $current['content'] . substr($temp[$i]['content'], 1);
+                    $current['content'] = $temp[$last]['content'][0]
+                                        . $current['content']
+                                        . substr($temp[$i]['content'], 1);
                 }
                 break;
             case self::TYPE_OCTET_STRING:
@@ -620,7 +617,7 @@ class ASN1
                     $current['content'] = '';
                     $length = 0;
                     while (substr($content, 0, 2) != "\0\0") {
-                        $temp = static::_decode($content, $length + $start);
+                        $temp = static::decode($content, $length + $start);
                         static::stringShift($content, $temp['length']);
                         // all subtags should be octet strings
                         //if ($temp['type'] != self::TYPE_OCTET_STRING) {
@@ -651,7 +648,7 @@ class ASN1
                         $length = $offset + 2; // +2 for the EOC
                         break 2;
                     }
-                    $temp = static::_decode($content, $start + $offset);
+                    $temp = static::decode($content, $start + $offset);
                     static::stringShift($content, $temp['length']);
                     $current['content'][] = $temp;
                     $offset+= $temp['length'];
