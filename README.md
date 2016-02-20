@@ -77,6 +77,8 @@ $src = [
 
 // finally produce the TSQ
 $res = ASN1::encodeDER($src, $tsq); // raw output
+// the result can be checked using:
+// openssl ts -query -in FILE.tsq -text
 
 // Example 2: decode a DER encoded object (Time-Stamp Request)
 ASN1::decodeDER($res); // deeply nested definition

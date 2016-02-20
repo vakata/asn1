@@ -243,7 +243,9 @@ class ASN1
                             $subtag = chr((static::CLASS_CONTEXT_SPECIFIC << 6) | 0x20 | $child['constant']);
                             $temp = $subtag . static::encodeLength(strlen($temp)) . $temp;
                         } else {
-                            $subtag = chr((static::CLASS_CONTEXT_SPECIFIC << 6) | (ord($temp[0]) & 0x20) | $child['constant']);
+                            $subtag = chr(
+                                (static::CLASS_CONTEXT_SPECIFIC << 6) | (ord($temp[0]) & 0x20) | $child['constant']
+                            );
                             $temp = $subtag . substr($temp, 1);
                         }
                     }
@@ -309,10 +311,6 @@ class ASN1
                 }
                 // default to octet string if no mapping is present
             case static::TYPE_OCTET_STRING:
-                /* The initial octet shall encode, as an unsigned binary integer with bit 1 as the least significant bit,
-                   the number of unused bits in the final subsequent octet. The number shall be in the range zero to seven.
-
-                   -- http://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf#page=16 */
                 $value = base64_decode($source);
                 break;
             case static::TYPE_OBJECT_IDENTIFIER:
