@@ -314,12 +314,14 @@ class ASN1
                 $value = base64_decode($source);
                 break;
             case static::TYPE_OBJECT_IDENTIFIER:
+                if (!isset($source) && $mapping['optional']) {
+                    return;
+                }
                 $oid = preg_match('#(?:\d+\.)+#', $source) ?
                   $source :
                   isset(static::$oids[$source]) ? static::$oids[$source] : false;
                 if ($oid === false) {
                     throw new ASN1Exception('Invalid OID');
-                    return false;
                 }
                 $value = '';
                 $parts = explode('.', $oid);
@@ -413,7 +415,7 @@ class ASN1
             $mapping['type'] = $decoded['type'];
         }
         if ($mapping['type'] !== $decoded['type']) {
-            if (!$mapping['optional']) {
+            if (!isset($mapping['optional']) || !$mapping['optional']) {
                 throw new ASN1Exception('Decoded data does not match mapping');
             }
             return false;
@@ -426,7 +428,7 @@ class ASN1
                 $i = 0;
                 foreach ($mapping['children'] as $k => $v) {
                     $result[$k] = null;
-                    if (static::map($decoded['content'][$i], $v, $result[$k])) {
+                    if (static::map(isset($decoded['content'][$i]) ? $decoded['content'][$i] : null, $v, $result[$k])) {
                         $i++;
                     }
                 }
