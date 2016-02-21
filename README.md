@@ -52,7 +52,7 @@ $tsq = [
         'reqPolicy' => [
             'type' => ASN1::TYPE_OBJECT_IDENTIFIER,
             'optional' => true
-        ),
+        ],
         'nonce' => [
             'type' => ASN1::TYPE_INTEGER,
             'optional' => true
@@ -120,7 +120,7 @@ $tsr = [
         ]
     ]
 ];
-$res = ASN1::decodeDER($rawInput, $tsq);
+$res = ASN1::decodeDER($rawInput, $tsr);
 if (in_array($res['status']['status'], [ 'granted', 'grantedWithMods'])) {
     // TSR was granted (nonce / hashes should be checked as well)
 }
