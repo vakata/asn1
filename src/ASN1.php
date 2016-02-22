@@ -43,6 +43,7 @@ class ASN1
     const TYPE_BMP_STRING        = 30;
     const TYPE_CHOICE            = -1;
     const TYPE_ANY               = -2;
+    const TYPE_ANY_RAW           = -3;
 
     public static $oids = [
         'sha1' =>                 '1.3.14.3.2.26',
@@ -356,11 +357,12 @@ class ASN1
         if (count($decoded) === 1) {
             $decoded = $decoded[0];
         }
-        if (!$mapping) {
-            return $decoded;
-        }
         $result = null;
-        static::map($decoded, $mapping, $result);
+        if ($mapping) {
+            static::map($decoded, $mapping, $result);
+        } else {
+            static::values($decoded, $result);
+        }
         return $result;
     }
 
@@ -411,7 +413,7 @@ class ASN1
 
             $contents = '';
             if ($length === null) {
-                while(!feof($stream)) {
+                while (!feof($stream)) {
                     $oct1 = fread($stream, 1);
                     $oct2 = fread($stream, 1);
                     if (ord($oct1) === 0 && ord($oct2) === 0) {
@@ -420,8 +422,7 @@ class ASN1
                     $contents .= $oct1 . $oct2;
                 }
                 $length = strlen($contents);
-            }
-            else {
+            } else {
                 if ($length) {
                     $contents = fread($stream, $length);
                 }
@@ -447,15 +448,21 @@ class ASN1
                         // TODO: read the specs
                         return false;
                     case static::TYPE_BIT_STRING:
-                        // TODO: fix this
                         if ($constructed) {
-                            $contents = static::decode($contents);
+                            $temp = static::decode($contents);
+                            $real = '';
+                            for ($i = 0; $i < count($temp) - 1; $i++) {
+                                $real .= $temp['contents'];
+                            }
+                            $real = $temp[count($temp) - 1]['content'][0] . $real . substr($temp[$i]['content'], 1);
+                            $contents = $real;
                         }
                         break;
                     case static::TYPE_OCTET_STRING:
-                        // TODO: verify this
                         if ($constructed) {
-                            $contents = static::decode($contents);
+                            $contents = implode('', array_map(function ($v) {
+                                return $v['contents'];
+                            }, static::decode($contents)));
                         }
                         break;
                     case static::TYPE_NULL:
@@ -513,15 +520,16 @@ class ASN1
 
     protected static function map($decoded, $mapping, &$result)
     {
-        if ($decoded['tag'] === 0 && $decoded['class'] !== 0) {
+        while ($decoded['class'] !== 0 && isset($decoded['contents']) && is_array($decoded['contents'])) {
             $decoded = $decoded['contents'];
         }
         if (in_array($mapping['tag'], [ASN1::TYPE_SEQUENCE, ASN1::TYPE_SET]) &&
             in_array($decoded['tag'], [ASN1::TYPE_SEQUENCE, ASN1::TYPE_SET])) {
             $mapping['tag'] = $decoded['tag'];
         }
-        if ($mapping['tag'] !== ASN1::TYPE_ANY && $mapping['tag'] !== $decoded['tag']) {
+        if (!in_array($mapping['tag'], [ASN1::TYPE_ANY, ASN1::TYPE_ANY_RAW]) && $mapping['tag'] !== $decoded['tag']) {
             if (!isset($mapping['optional']) || !$mapping['optional']) {
+                var_dump($decoded); var_dump($mapping); die();
                 throw new ASN1Exception('Decoded data does not match mapping');
             }
             return false;
@@ -530,14 +538,39 @@ class ASN1
             $mapping['tag'] = $decoded['tag'];
         }
         switch ($mapping['tag']) {
+            case static::TYPE_ANY_RAW:
+                static::values($decoded, $result);
+                break;
             case static::TYPE_SET:
+                $temp = $decoded['contents'];
+                foreach ($mapping['children'] as $k => $v) {
+                    $result[$k] = null;
+                    foreach ($temp as $kk => $vv) {
+                        if ($v['tag'] === ASN1::TYPE_ANY || $v['tag'] === $vv['tag']) {
+                            if (static::map($vv, $v, $result[$k])) {
+                                unset($temp[$kk]);
+                            } else {
+                                $result[$k] = null;
+                            }
+                            break;
+                        }
+                    }
+                    if ($result[$k] === null && (!isset($v['optional']) || !$v['optional'])) {
+                        throw new ASN1Exception('Decoded data does not match mapping');
+                    }
+                }
+                break;
             case static::TYPE_SEQUENCE:
             case static::TYPE_CHOICE:
                 $result = [];
                 $i = 0;
                 foreach ($mapping['children'] as $k => $v) {
                     $result[$k] = null;
-                    if (static::map(isset($decoded['contents'][$i]) ? $decoded['contents'][$i] : null, $v, $result[$k], $k)) {
+                    if (static::map(
+                            isset($decoded['contents'][$i]) ? $decoded['contents'][$i] : null,
+                            $v,
+                            $result[$k]
+                    )) {
                         $i++;
                     }
                 }
@@ -556,6 +589,25 @@ class ASN1
                 if (isset($mapping['mapping']) && isset($mapping['mapping'][$result])) {
                     $result = $mapping['mapping'][$result];
                 }
+                break;
+        }
+        return true;
+    }
+
+    protected static function values($decoded, &$result) {
+        while ($decoded['class'] !== 0 && isset($decoded['contents']) && is_array($decoded['contents'])) {
+            $decoded = $decoded['contents'];
+        }
+        switch ($decoded['tag']) {
+            case static::TYPE_SEQUENCE:
+            case static::TYPE_SET:
+                foreach ($decoded['contents'] as $k => $v) {
+                    $result[$k] = null;
+                    static::values($v, $result[$k]);
+                }
+                break;
+            default:
+                $result = $decoded['contents'];
                 break;
         }
         return true;

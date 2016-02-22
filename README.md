@@ -117,12 +117,95 @@ $tsr = [
                     'optional' => true
                 ]
             ]
+        ],
+        'timeStampToken' => [
+            'tag' => ASN1::TYPE_SEQUENCE,
+            'optional' => true,
+            'children' => [
+                'contentType' => ['tag' => ASN1::TYPE_OBJECT_IDENTIFIER ],
+                'signedData' => [
+                    'tag' => ASN1::TYPE_SEQUENCE,
+                    'children' => [
+                        'version' => ['tag' => ASN1::TYPE_INTEGER ],
+                        'algorithms' => [
+                            'tag' => ASN1::TYPE_SET,
+                            'children' => [
+                                'hashAlgorithm' => [
+                                     'tag' => ASN1::TYPE_SEQUENCE,
+                                     'children' => [
+                                         "algorithm" => [
+                                             'tag' => ASN1::TYPE_OBJECT_IDENTIFIER
+                                         ],
+                                         'parameters' => [
+                                             'tag' => ASN1::TYPE_ANY,
+                                             'optional' => true
+                                         ]
+                                     ]
+                                ],
+                            ],
+                        ],
+                        "tokenInfo" => ['tag' => ASN1::TYPE_ANY_RAW]
+                    ]
+                ]
+            ]
         ]
     ]
 ];
 $res = ASN1::decodeDER($rawInput, $tsr);
 if (in_array($res['status']['status'], [ 'granted', 'grantedWithMods'])) {
-    // TSR was granted (nonce / hashes should be checked as well)
+    // timestamp was granted - we can now extract all related data
+    $token = [
+        'tag' => ASN1::TYPE_SEQUENCE,
+        'children' => [
+            'version' => ['tag' => ASN1::TYPE_INTEGER, 'mapping' => [1 => 'v1','v2','v3'] ],
+            'policy' =>  ['tag' => ASN1::TYPE_OBJECT_IDENTIFIER, 'optional' => true ],
+            'messageImprint' => [
+                'tag' => ASN1::TYPE_SEQUENCE,
+                'children' => [
+                   'hashAlgorithm' => [
+                        'tag' => ASN1::TYPE_SEQUENCE,
+                        'children' => [
+                            "algorithm" => [
+                                'tag' => ASN1::TYPE_OBJECT_IDENTIFIER
+                            ],
+                            'parameters' => [
+                                'tag' => ASN1::TYPE_ANY,
+                                'optional' => true
+                            ]
+                        ]
+                   ],
+                   'hashedMessage' => [
+                        'tag' => ASN1::TYPE_OCTET_STRING,
+                        'optional' => true // non-optional
+                   ]
+                ]
+            ],
+            'serialNumber' => ['tag' => ASN1::TYPE_INTEGER, 'optional' => true ], // non-optional
+            'genTime' => ['tag' => ASN1::TYPE_GENERALIZED_TIME], // GeneralizedTime (non-optional]
+            'accuracy' => [
+                'tag' => ASN1::TYPE_SEQUENCE,
+                'optional' => true,
+                'children' => [
+                    'seconds' => ['tag' => ASN1::TYPE_ANY, 'optional' => true ],
+                    'millis' => ['tag' => ASN1::TYPE_ANY, 'optional' => true ],
+                    'micros' => ['tag' => ASN1::TYPE_ANY, 'optional' => true ],
+                ]
+            ],
+            'ordering' => [
+                'tag' => ASN1::TYPE_BOOLEAN,
+                'optional' => true
+            ],
+            'nonce' => [
+                'tag' => ASN1::TYPE_INTEGER,
+                'optional' => true
+            ],
+            'tsa' => ['tag' => ASN1::TYPE_ANY_RAW, 'optional' => true]
+        ]
+    ];
+    $token = ASN1::decodeDER(
+        $res['timeStampToken']["signedData"]["tokenInfo"][1],
+        $token
+    );
 }
 ```
 
