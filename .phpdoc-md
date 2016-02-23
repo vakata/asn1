@@ -4,6 +4,7 @@ return (object)[
     'destDirectory' => 'docs',
     'format' => 'github',
     'classes' => [
-        '\\vakata\\asn1\\ASN1'
+        '\\vakata\\asn1\\ASN1',
+        '\\vakata\\asn1\\Timestamp'
     ],
 ];

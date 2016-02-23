@@ -329,7 +329,6 @@ class ASN1
                 break;
             default:
                 throw new ASN1Exception('Mapping provides no type definition');
-                return false;
         }
 
         return chr($tag) . static::encodeLength(strlen($value)) . $value;
@@ -529,7 +528,7 @@ class ASN1
         }
         if (!in_array($mapping['tag'], [ASN1::TYPE_ANY, ASN1::TYPE_ANY_RAW]) && $mapping['tag'] !== $decoded['tag']) {
             if (!isset($mapping['optional']) || !$mapping['optional']) {
-                var_dump($decoded); var_dump($mapping); die();
+                var_dump($mapping); var_dump($decoded); die();
                 throw new ASN1Exception('Decoded data does not match mapping');
             }
             return false;

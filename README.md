@@ -19,46 +19,54 @@ $ composer require vakata/asn1
 ## Usage
 
 ``` php
-// Example 1: generating a Time-Stamp Request
+// Example 0: Working with the example Timestamp class
+// generate a timestamp request (there is a generateRequestFromData method as well)
+$tsq = Timestamp::generateRequestFromFile('/path/to/file/to/timestamp');
+// parse a timestamp request (there is a parseRequestFromFile method as well)
+$src = Timestamp::parseRequestFromData($tsq);
+// parse a timestamp response (there is a parseResponseFromData method as well)
+$tsr = Timestamp::parseResponseFromFile('/path/to/timestamp/response');
+
+// Example 1: generating a Timestamp Request (using the raw ASN1 class)
 
 // first configure the mapping (the structure)
 $tsq = [
-    'type' => ASN1::TYPE_SEQUENCE,
+    'tag' => ASN1::TYPE_SEQUENCE,
     'children' => [
         'version' => [
-            'type' => ASN1::TYPE_INTEGER,
+            'tag' => ASN1::TYPE_INTEGER,
             'mapping' => [1=>'v1','v2','v3']
         ],
         'messageImprint' => [
-            'type' => ASN1::TYPE_SEQUENCE,
+            'tag' => ASN1::TYPE_SEQUENCE,
             'children' => [
                'hashAlgorithm' => [
-                    'type' => ASN1::TYPE_SEQUENCE,
+                    'tag' => ASN1::TYPE_SEQUENCE,
                     'children' => [
                         "algorithm" => [
-                            'type' => ASN1::TYPE_OBJECT_IDENTIFIER
+                            'tag' => ASN1::TYPE_OBJECT_IDENTIFIER
                         ],
                         'parameters' => [
-                            'type' => ASN1::TYPE_ANY,
+                            'tag' => ASN1::TYPE_ANY,
                             'optional' => true
                         ]
                     ]
                ],
                'hashedMessage' => [
-                    'type' => ASN1::TYPE_OCTET_STRING
+                    'tag' => ASN1::TYPE_OCTET_STRING
                ]
             ]
         ],
         'reqPolicy' => [
-            'type' => ASN1::TYPE_OBJECT_IDENTIFIER,
+            'tag' => ASN1::TYPE_OBJECT_IDENTIFIER,
             'optional' => true
         ],
         'nonce' => [
-            'type' => ASN1::TYPE_INTEGER,
+            'tag' => ASN1::TYPE_INTEGER,
             'optional' => true
         ],
         'certReq' => [
-            'type' => ASN1::TYPE_BOOLEAN,
+            'tag' => ASN1::TYPE_BOOLEAN,
             'optional' => true
         ]
     ]
@@ -88,13 +96,13 @@ ASN1::decodeDER($res, $tsq); // the same as `$src`
 
 // Example 4: partially decode a DER encoded Time-Stamp Response:
 $tsr = [
-    'type' => ASN1::TYPE_SEQUENCE,
+    'tag' => ASN1::TYPE_SEQUENCE,
     'children' => [
         'status' => [
-            'type' => ASN1::TYPE_SEQUENCE,
+            'tag' => ASN1::TYPE_SEQUENCE,
             'children' => [
                 'status' => [
-                    'type' => ASN1::TYPE_INTEGER,
+                    'tag' => ASN1::TYPE_INTEGER,
                     'mapping' => [
                         'granted',
                         'grantedWithMods',
@@ -105,15 +113,15 @@ $tsr = [
                     ]
                 ],
                 'statusString' => [
-                    'type' => ASN1::TYPE_SEQUENCE,
+                    'tag' => ASN1::TYPE_SEQUENCE,
                     'children' => [
                         'data' => [
-                            'type' =>ASN1::TYPE_UTF8_STRING
+                            'tag' =>ASN1::TYPE_UTF8_STRING
                         ]
                     ]
                 ],
                 'failInfo' => [
-                    'type' => ASN1::TYPE_BIT_STRING,
+                    'tag' => ASN1::TYPE_BIT_STRING,
                     'optional' => true
                 ]
             ]
