@@ -213,6 +213,41 @@ class Timestamp
         return ASN1::encodeDER($src, static::$request);
     }
     /**
+     * Generate a timestamp request (tsq) for a given hash
+     * @method generateRequestFromHash
+     * @param  string           $data        the hash to be timestamped (raw binary)
+     * @param  boolean|string   $nonce       should a nonce be used - defaults to true, could be a value to use as nonce
+     * @param  boolean          $requireCert should a certificate be returned in the response, defaults to false
+     * @param  string           $alg         the algorithm to use, defaults to 'sha1'
+     * @param  string|null      $policy      the policy to use, defaults to null
+     * @return string                        the raw timestamp request
+     */
+    public static function generateRequestFromHash($data, $nonce = true, $requireCert = false, $alg = 'sha1', $policy = null)
+    {
+        if (!in_array($alg, ['sha1', 'sha256', 'sha384', 'sha512', 'md5'])) {
+            throw new TimestampException('Unsupported hash algorithm');
+        }
+        if ($nonce === true) {
+            $nonce = rand(1, PHP_INT_MAX);
+        }
+        if (!$nonce) {
+            $nonce = null;
+        }
+        
+        $src = [
+            'version' => 'v1',
+            'reqPolicy' => $policy,
+            'messageImprint' => [
+                'hashAlgorithm' => [ "algorithm" => $alg, 'parameters' => null ],
+                'hashedMessage' => base64_encode($data),
+            ],
+            'nonce' => $nonce,
+            'certReq' => $requireCert
+        ];
+
+        return ASN1::encodeDER($src, static::$request);
+    }
+    /**
      * Parse a timestamp request
      * @method parseRequestFromData
      * @param  string               $data the request
