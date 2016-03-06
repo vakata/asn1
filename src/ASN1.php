@@ -143,7 +143,7 @@ class ASN1
         for ($i = 0; $i < strlen($string); $i++) {
             $number .= str_pad(base_convert(ord($string{$i}), 10, 2), 8, "0", STR_PAD_LEFT);
         }
-        return (int)base_convert($number, 2, $base);
+        return base_convert($number, 2, $base);
     }
 
     /**
@@ -528,7 +528,6 @@ class ASN1
         }
         if (!in_array($mapping['tag'], [ASN1::TYPE_ANY, ASN1::TYPE_ANY_RAW]) && $mapping['tag'] !== $decoded['tag']) {
             if (!isset($mapping['optional']) || !$mapping['optional']) {
-                var_dump($mapping); var_dump($decoded); die();
                 throw new ASN1Exception('Decoded data does not match mapping');
             }
             return false;
@@ -594,7 +593,11 @@ class ASN1
     }
 
     protected static function values($decoded, &$result) {
-        while ($decoded['class'] !== 0 && isset($decoded['contents']) && is_array($decoded['contents'])) {
+        while ($decoded['class'] !== 0 &&
+            isset($decoded['contents']) &&
+            is_array($decoded['contents']) &&
+            isset($decoded['contents']['tag'])
+        ) {
             $decoded = $decoded['contents'];
         }
         switch ($decoded['tag']) {
