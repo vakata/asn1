@@ -114,7 +114,6 @@ class ASN1
 
     /**
      * Convert a number to base256
-     * @method toBase256
      * @param  integer    $number the number to convert
      * @param  integer    $base   the current base of the number (optional, defaults to 10)
      * @return string             the number in base256
@@ -132,7 +131,6 @@ class ASN1
     }
     /**
      * Convert a number from base256
-     * @method fromBase256
      * @param  string      $string the number to convert
      * @param  integer     $base   the base to convert to (optional, defaults to 10)
      * @return integer             the converted number
@@ -148,7 +146,6 @@ class ASN1
 
     /**
      * Encode some data to DER using a mapping array.
-     * @method encodeDER
      * @param  mixed     $source  the data to convert
      * @param  array     $mapping rules to convert by (check the example on https://gihub.com/vakata/asn1)
      * @return string             raw DER output (base64_encode if needed)
@@ -345,7 +342,6 @@ class ASN1
 
     /**
      * Decode DER formatted data.
-     * @method decodeDER
      * @param  string     $encoded raw DER input
      * @param  array|null $mapping optional mapping to follow (check the example on https://gihub.com/vakata/asn1)
      * @return array               the decoded object

@@ -163,7 +163,6 @@ class Timestamp
 
     /**
      * Generate a timestamp request (tsq) for a file path
-     * @method generateRequestFromFile
      * @param  string           $path        the path to the file to be timestamped
      * @param  boolean|string   $nonce       should a nonce be used - defaults to true, could be a value to use as nonce
      * @param  boolean          $requireCert should a certificate be returned in the response, defaults to false
@@ -178,7 +177,6 @@ class Timestamp
     }
     /**
      * Generate a timestamp request (tsq) for a string
-     * @method generateRequestFromData
      * @param  string           $data        the data to be timestamped
      * @param  boolean|string   $nonce       should a nonce be used - defaults to true, could be a value to use as nonce
      * @param  boolean          $requireCert should a certificate be returned in the response, defaults to false
@@ -214,7 +212,6 @@ class Timestamp
     }
     /**
      * Generate a timestamp request (tsq) for a given hash
-     * @method generateRequestFromHash
      * @param  string           $data        the hash to be timestamped (raw binary)
      * @param  boolean|string   $nonce       should a nonce be used - defaults to true, could be a value to use as nonce
      * @param  boolean          $requireCert should a certificate be returned in the response, defaults to false
@@ -249,7 +246,6 @@ class Timestamp
     }
     /**
      * Parse a timestamp request
-     * @method parseRequestFromData
      * @param  string               $data the request
      * @return array                      the parsed request
      */
@@ -259,7 +255,6 @@ class Timestamp
     }
     /**
      * Parse a timestamp request from a file
-     * @method parseRequestFromFile
      * @param  string               $path the path to the timestamp request file
      * @return array                      the parsed request
      * @codeCoverageIgnore
@@ -270,7 +265,6 @@ class Timestamp
     }
     /**
      * Parse a timestamp response
-     * @method parseResponseFromData
      * @param  string               $data the response
      * @return array                      the parsed response
      */
@@ -292,7 +286,6 @@ class Timestamp
     }
     /**
      * Parse a timestamp response from a file
-     * @method parseResponseFromData
      * @param  string               $data the path to the timestamp response file
      * @return array                      the parsed response
      * @codeCoverageIgnore
