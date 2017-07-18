@@ -3,7 +3,7 @@
 namespace vakata\asn1;
 
 /**
- * A class for timestamp request / response parsing
+ * A class for x509 certificate parsing
  */
 class Certificate
 {

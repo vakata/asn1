@@ -7,6 +7,7 @@ A class for timestamp request / response parsing
 |------|-------------|
 |[generateRequestFromFile](#vakata\asn1\timestampgeneraterequestfromfile)|Generate a timestamp request (tsq) for a file path|
 |[generateRequestFromData](#vakata\asn1\timestampgeneraterequestfromdata)|Generate a timestamp request (tsq) for a string|
+|[generateRequestFromHash](#vakata\asn1\timestampgeneraterequestfromhash)|Generate a timestamp request (tsq) for a given hash|
 |[parseRequestFromData](#vakata\asn1\timestampparserequestfromdata)|Parse a timestamp request|
 |[parseRequestFromFile](#vakata\asn1\timestampparserequestfromfile)|Parse a timestamp request from a file|
 |[parseResponseFromData](#vakata\asn1\timestampparseresponsefromdata)|Parse a timestamp response|
@@ -60,6 +61,33 @@ public static function generateRequestFromData (
 |  | Type | Description |
 |-----|-----|-----|
 | `$data` | `string` | the data to be timestamped |
+| `$nonce` | `boolean`, `string` | should a nonce be used - defaults to true, could be a value to use as nonce |
+| `$requireCert` | `boolean` | should a certificate be returned in the response, defaults to false |
+| `$alg` | `string` | the algorithm to use, defaults to 'sha1' |
+| `$policy` | `string`, `null` | the policy to use, defaults to null |
+|  |  |  |
+| `return` | `string` | the raw timestamp request |
+
+---
+
+
+### vakata\asn1\Timestamp::generateRequestFromHash
+Generate a timestamp request (tsq) for a given hash  
+
+
+```php
+public static function generateRequestFromHash (  
+    string $data,  
+    boolean|string $nonce,  
+    boolean $requireCert,  
+    string $alg,  
+    string|null $policy  
+) : string    
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+| `$data` | `string` | the hash to be timestamped (raw binary) |
 | `$nonce` | `boolean`, `string` | should a nonce be used - defaults to true, could be a value to use as nonce |
 | `$requireCert` | `boolean` | should a certificate be returned in the response, defaults to false |
 | `$alg` | `string` | the algorithm to use, defaults to 'sha1' |
