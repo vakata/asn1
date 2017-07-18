@@ -558,14 +558,24 @@ class ASN1
             case static::TYPE_CHOICE:
                 $result = [];
                 $i = 0;
-                foreach ($mapping['children'] as $k => $v) {
-                    $result[$k] = null;
-                    if (static::map(
+                if (isset($mapping['repeat'])) {
+                    foreach ($decoded['contents'] as $i => $v) {
+                        static::map(
                             isset($decoded['contents'][$i]) ? $decoded['contents'][$i] : null,
-                            $v,
-                            $result[$k]
-                    )) {
-                        $i++;
+                            $mapping['repeat'],
+                            $result[$i]
+                        );
+                    }
+                } else {
+                    foreach ($mapping['children'] as $k => $v) {
+                        $result[$k] = null;
+                        if (static::map(
+                                isset($decoded['contents'][$i]) ? $decoded['contents'][$i] : null,
+                                $v,
+                                $result[$k]
+                        )) {
+                            $i++;
+                        }
                     }
                 }
                 break;
@@ -576,7 +586,11 @@ class ASN1
                 }
                 break;
             case static::TYPE_OCTET_STRING:
-                $result = base64_encode($decoded['contents']);
+                if (isset($mapping['der']) && $mapping['der']) {
+                    $result = static::decodeDER($decoded['contents']);
+                } else {
+                    $result = base64_encode($decoded['contents']);
+                }
                 break;
             default:
                 $result = $decoded['contents'];
