@@ -434,7 +434,7 @@ class ASN1
                 }
                 // default to octet string if no mapping is present
             case static::TYPE_OCTET_STRING:
-                $value = $mapping['raw'] ? $source : base64_decode($source);
+                $value = isset($mapping['raw']) && $mapping['raw'] ? $source : base64_decode($source);
                 break;
             case static::TYPE_OBJECT_IDENTIFIER:
                 if (!isset($source) && $mapping['optional']) {
