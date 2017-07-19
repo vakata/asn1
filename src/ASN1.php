@@ -434,7 +434,7 @@ class ASN1
                 }
                 // default to octet string if no mapping is present
             case static::TYPE_OCTET_STRING:
-                $value = base64_decode($source);
+                $value = $mapping['raw'] ? $source : base64_decode($source);
                 break;
             case static::TYPE_OBJECT_IDENTIFIER:
                 if (!isset($source) && $mapping['optional']) {
@@ -708,21 +708,31 @@ class ASN1
                 static::values($decoded, $result);
                 break;
             case static::TYPE_SET:
-                $temp = $decoded['contents'];
-                foreach ($mapping['children'] as $k => $v) {
-                    $result[$k] = null;
-                    foreach ($temp as $kk => $vv) {
-                        if ($v['tag'] === ASN1::TYPE_ANY || $v['tag'] === $vv['tag']) {
-                            if (static::map($vv, $v, $result[$k])) {
-                                unset($temp[$kk]);
-                            } else {
-                                $result[$k] = null;
-                            }
-                            break;
-                        }
+                if (isset($mapping['repeat'])) {
+                    foreach ($decoded['contents'] as $i => $v) {
+                        static::map(
+                            isset($decoded['contents'][$i]) ? $decoded['contents'][$i] : null,
+                            $mapping['repeat'],
+                            $result[$i]
+                        );
                     }
-                    if ($result[$k] === null && (!isset($v['optional']) || !$v['optional'])) {
-                        throw new ASN1Exception('Decoded data does not match mapping');
+                } else {
+                    $temp = $decoded['contents'];
+                    foreach ($mapping['children'] as $k => $v) {
+                        $result[$k] = null;
+                        foreach ($temp as $kk => $vv) {
+                            if ($v['tag'] === ASN1::TYPE_ANY || $v['tag'] === $vv['tag']) {
+                                if (static::map($vv, $v, $result[$k])) {
+                                    unset($temp[$kk]);
+                                } else {
+                                    $result[$k] = null;
+                                }
+                                break;
+                            }
+                        }
+                        if ($result[$k] === null && (!isset($v['optional']) || !$v['optional'])) {
+                            throw new ASN1Exception('Decoded data does not match mapping');
+                        }
                     }
                 }
                 break;

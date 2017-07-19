@@ -36,17 +36,15 @@ class Certificate
                         'tag' => ASN1::TYPE_SEQUENCE,
                         'repeat' => [
                             'tag' => ASN1::TYPE_SET,
-                            'children' => [
-                                'set' => [
-                                    'tag' => ASN1::TYPE_SEQUENCE,
-                                    'children' => [
-                                        'key' => [
-                                            'tag' => ASN1::TYPE_OBJECT_IDENTIFIER
-                                        ],
-                                        'value' => [
-                                            'tag' => ASN1::TYPE_ANY,
-                                            'optional' => true
-                                        ]
+                            'repeat' => [
+                                'tag' => ASN1::TYPE_SEQUENCE,
+                                'children' => [
+                                    'key' => [
+                                        'tag' => ASN1::TYPE_OBJECT_IDENTIFIER
+                                    ],
+                                    'value' => [
+                                        'tag' => ASN1::TYPE_ANY,
+                                        'optional' => true
                                     ]
                                 ]
                             ]
@@ -67,17 +65,15 @@ class Certificate
                         'tag' => ASN1::TYPE_SEQUENCE,
                         'repeat' => [
                             'tag' => ASN1::TYPE_SET,
-                            'children' => [
-                                'set' => [
-                                    'tag' => ASN1::TYPE_SEQUENCE,
-                                    'children' => [
-                                        'key' => [
-                                            'tag' => ASN1::TYPE_OBJECT_IDENTIFIER
-                                        ],
-                                        'value' => [
-                                            'tag' => ASN1::TYPE_ANY,
-                                            'optional' => true
-                                        ]
+                            'repeat' => [
+                                'tag' => ASN1::TYPE_SEQUENCE,
+                                'children' => [
+                                    'key' => [
+                                        'tag' => ASN1::TYPE_OBJECT_IDENTIFIER
+                                    ],
+                                    'value' => [
+                                        'tag' => ASN1::TYPE_ANY,
+                                        'optional' => true
                                     ]
                                 ]
                             ]
@@ -156,6 +152,7 @@ class Certificate
         }
         return ASN1::decodeDER($data, static::$x509v3);
     }
+
     /**
      * Parse a certificate from a file
      * @param  string               $path the path to the certificate file
