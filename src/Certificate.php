@@ -18,7 +18,8 @@ class Certificate
                         'mapping' => [1=>'v1','v2','v3']
                     ],
                     'serialNumber' => [
-                        'tag' => ASN1::TYPE_INTEGER
+                        'tag' => ASN1::TYPE_INTEGER,
+                        'base' => 16
                     ],
                     'signature' => [
                         'tag' => ASN1::TYPE_SEQUENCE,

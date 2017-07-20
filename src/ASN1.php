@@ -313,7 +313,7 @@ class ASN1
         for ($i = 0; $i < strlen($string); $i++) {
             $number .= str_pad(base_convert(ord($string{$i}), 10, 2), 8, "0", STR_PAD_LEFT);
         }
-        return base_convert($number, 2, $base);
+        return $number;
     }
 
     /**
@@ -608,8 +608,10 @@ class ASN1
                         $contents = (bool)ord($contents[0]);
                         break;
                     case static::TYPE_INTEGER:
-                    case static::TYPE_ENUMERATED:
                         $contents = static::fromBase256($contents);
+                        break;
+                    case static::TYPE_ENUMERATED:
+                        $contents = (int)base_convert(static::fromBase256($contents), 2, 10);
                         break;
                     case static::TYPE_REAL:
                         // TODO: read the specs
@@ -772,6 +774,29 @@ class ASN1
                     $result = static::decodeDER($decoded['contents']);
                 } else {
                     $result = base64_encode($decoded['contents']);
+                }
+                break;
+            case static::TYPE_INTEGER:
+                $base = isset($mapping['base']) && (int)$mapping['base'] ? (int)$mapping['base'] : 10;
+                if ($base < 3) {
+                    $result = $decoded['contents'];
+                } else {
+                    if (strlen($decoded['contents']) > 53 && $base === 16) {
+                        $hex = '';
+                        for ($i = strlen($decoded['contents']) - 4; $i >= 0; $i-=4) {
+                            $hex .= dechex(bindec(substr($decoded['contents'], $i, 4)));
+                        }
+                        $result = strrev($hex);
+                    } else {
+                        $temp = base_convert($decoded['contents'], 2, $base);
+                        if ($base === 10) {
+                            $temp = (int)$temp;
+                        }
+                        $result = $temp;
+                    }
+                }
+                if (isset($mapping['mapping']) && isset($mapping['mapping'][$result])) {
+                    $result = $mapping['mapping'][$result];
                 }
                 break;
             default:
