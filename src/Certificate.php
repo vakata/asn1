@@ -55,10 +55,18 @@ class Certificate
                         'tag' => ASN1::TYPE_SEQUENCE,
                         'children' => [
                             'notBefore' => [
-                                'tag' => ASN1::TYPE_ANY
+                                'tag' => ASN1::TYPE_CHOICE,
+                                'children' => [
+                                    [ 'tag' => ASN1::TYPE_GENERALIZED_TIME ],
+                                    [ 'tag' => ASN1::TYPE_UTC_TIME ]
+                                ]
                             ],
                             'notAfter' => [
-                                'tag' => ASN1::TYPE_ANY
+                                'tag' => ASN1::TYPE_CHOICE,
+                                'children' => [
+                                    [ 'tag' => ASN1::TYPE_GENERALIZED_TIME ],
+                                    [ 'tag' => ASN1::TYPE_UTC_TIME ]
+                                ]
                             ]
                         ]
                     ],
