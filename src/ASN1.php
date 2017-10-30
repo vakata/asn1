@@ -3,6 +3,8 @@
 
 namespace vakata\asn1;
 
+use DateTime;
+
 /**
  * A class handling ASN1 encoding / decoding.
  */
@@ -692,6 +694,14 @@ class ASN1
         while ($decoded['class'] !== 0 && isset($decoded['contents']) && is_array($decoded['contents'])) {
             $decoded = $decoded['contents'];
         }
+        if ($mapping['tag'] === ASN1::TYPE_CHOICE) {
+            foreach ($mapping['children'] as $child) {
+                if ($decoded['tag'] === $child['tag']) {
+                    $mapping = $child;
+                    break;
+                }
+            }
+        }
         if (in_array($mapping['tag'], [ASN1::TYPE_SEQUENCE, ASN1::TYPE_SET]) &&
             in_array($decoded['tag'], [ASN1::TYPE_SEQUENCE, ASN1::TYPE_SET])) {
             $mapping['tag'] = $decoded['tag'];
@@ -739,7 +749,6 @@ class ASN1
                 }
                 break;
             case static::TYPE_SEQUENCE:
-            case static::TYPE_CHOICE:
                 $result = [];
                 $i = 0;
                 if (isset($mapping['repeat'])) {
@@ -798,6 +807,39 @@ class ASN1
                 if (isset($mapping['mapping']) && isset($mapping['mapping'][$result])) {
                     $result = $mapping['mapping'][$result];
                 }
+                break;
+            case static::TYPE_UTC_TIME:
+                $content = $decoded['contents'];
+                $format = 'YmdHis';
+                $matches = [];
+                if (preg_match('#^(\d{10})(Z|[+-]\d{4})$#', $content, $matches)) {
+                    $content = $matches[1] . '00' . $matches[2];
+                }
+                $prefix = substr($content, 0, 2) >= 50 ? '19' : '20';
+                $content = $prefix . $content;
+                if ($content[strlen($content) - 1] == 'Z') {
+                    $content = substr($content, 0, -1) . '+0000';
+                }
+                if (strpos($content, '-') !== false || strpos($content, '+') !== false) {
+                    $format.= 'O';
+                }
+                $result = @DateTime::createFromFormat($format, $content);
+                $result = $result ? $result->getTimestamp() : false;
+                break;
+            case static::TYPE_GENERALIZED_TIME:
+                $content = $decoded['contents'];
+                $format = 'YmdHis';
+                if (strpos($content, '.') !== false) {
+                    $format.= '.u';
+                }
+                if ($content[strlen($content) - 1] == 'Z') {
+                    $content = substr($content, 0, -1) . '+0000';
+                }
+                if (strpos($content, '-') !== false || strpos($content, '+') !== false) {
+                    $format.= 'O';
+                }
+                $result = @DateTime::createFromFormat($format, $content);
+                $result = $result ? $result->getTimestamp() : false;
                 break;
             default:
                 $result = $decoded['contents'];
