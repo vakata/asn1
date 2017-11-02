@@ -56,14 +56,7 @@ class ASN1
         'md5' =>                  '1.2.840.113549.2.5',
         'md2' =>                  '1.3.14.7.2.2.1',
         'ripemd160' =>            '1.3.36.3.2.1',
-        'MD2withRSA' =>           '1.2.840.113549.1.1.2',
         'MD4withRSA' =>           '1.2.840.113549.1.1.3',
-        'MD5withRSA' =>           '1.2.840.113549.1.1.4',
-        'SHA1withRSA' =>          '1.2.840.113549.1.1.5',
-        'SHA224withRSA' =>        '1.2.840.113549.1.1.14',
-        'SHA256withRSA' =>        '1.2.840.113549.1.1.11',
-        'SHA384withRSA' =>        '1.2.840.113549.1.1.12',
-        'SHA512withRSA' =>        '1.2.840.113549.1.1.13',
         'SHA1withECDSA' =>        '1.2.840.10045.4.1',
         'SHA224withECDSA' =>      '1.2.840.10045.4.3.1',
         'SHA256withECDSA' =>      '1.2.840.10045.4.3.2',
@@ -520,7 +513,7 @@ class ASN1
      * @param  array|null $mapping optional mapping to follow (check the example on https://gihub.com/vakata/asn1)
      * @return array               the decoded object
      */
-    public static function decodeDER($encoded, array $mapping = null)
+    public static function decodeDER($encoded, array $mapping = null, bool $raw = false)
     {
         $decoded = static::decode($encoded);
         if (count($decoded) === 1) {
@@ -529,13 +522,15 @@ class ASN1
         $result = null;
         if ($mapping) {
             static::map($decoded, $mapping, $result);
+        } elseif ($raw) {
+            return $decoded;
         } else {
             static::values($decoded, $result);
         }
         return $result;
     }
 
-    protected static function decode($stream)
+    protected static function decode($stream, $start = 0)
     {
         if (is_string($stream)) {
             $temp = $stream;
@@ -544,8 +539,10 @@ class ASN1
             rewind($stream);
         }
         $result = [];
+        $read = 0;
         while (!feof($stream)) {
             $identifier = ord(fread($stream, 1));
+            $read += 1;
             $constructed = ($identifier >> 5) & 1; // 6th bit
             $class = ($identifier >> 6) & 3; // 7th and 8th bits
             $tag = $identifier & 31; // first 5 bits
@@ -554,6 +551,7 @@ class ASN1
                 $tag = 0;
                 while (true) {
                     $temp = ord(fread($stream, 1));
+                    $read += 1;
                     $tag <<= 7;
                     $tag |= $temp & 127;
                     if (($temp & 128) === 0) {
@@ -563,6 +561,7 @@ class ASN1
             }
 
             $temp = ord(fread($stream, 1));
+            $read += 1;
             $length = null;
             if ($temp === 128) {
                 // indefinite
@@ -574,6 +573,7 @@ class ASN1
                 for ($i = 0; $i < $octets; $i++) {
                     $length <<= 8;
                     $length |= ord(fread($stream, 1));
+                    $read += 1;
                 }
             } else {
                 // short form
@@ -599,7 +599,7 @@ class ASN1
 
             if ($class !== static::CLASS_UNIVERSAL) {
                 if ($constructed) {
-                    $contents = static::decode($contents);
+                    $contents = static::decode($contents, $start + $read);
                     if (count($contents) === 1) {
                         $contents = $contents[0];
                     }
@@ -620,7 +620,7 @@ class ASN1
                         return false;
                     case static::TYPE_BIT_STRING:
                         if ($constructed) {
-                            $temp = static::decode($contents);
+                            $temp = static::decode($contents, $start + $read);
                             $real = '';
                             for ($i = 0; $i < count($temp) - 1; $i++) {
                                 $real .= $temp['contents'];
@@ -633,7 +633,7 @@ class ASN1
                         if ($constructed) {
                             $contents = implode('', array_map(function ($v) {
                                 return $v['contents'];
-                            }, static::decode($contents)));
+                            }, static::decode($contents, $start + $read)));
                         }
                         break;
                     case static::TYPE_NULL:
@@ -641,7 +641,7 @@ class ASN1
                         break;
                     case static::TYPE_SEQUENCE:
                     case static::TYPE_SET:
-                        $contents = static::decode($contents);
+                        $contents = static::decode($contents, $start + $read);
                         break;
                     case static::TYPE_OBJECT_IDENTIFIER:
                         $real = '';
@@ -680,7 +680,8 @@ class ASN1
                 $result[] = [
                     'class'    => $class,
                     'tag'      => $tag,
-                    'length'   => $length,
+                    'start'    => $start,
+                    'length'   => $length + $read,
                     'contents' => $contents
                 ];
             }
