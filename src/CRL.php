@@ -132,8 +132,8 @@ class CRL
      */
     public static function parseData($data)
     {
-        if (strpos($data, '-BEGIN CERTIFICATE-') !== false) {
-            $data = str_replace(['-----BEGIN CERTIFICATE-----', '-----END CERTIFICATE-----', "\r", "\n"], '', $data);
+        if (strpos($data, ' -BEGIN X509 CRL-') !== false) {
+            $data = str_replace([' -----BEGIN X509 CRL-----', '-----END X509 CRL-----', "\r", "\n"], '', $data);
             $data = base64_decode($data);
         }
         return ASN1::decodeDER($data, static::$crl);
