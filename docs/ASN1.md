@@ -70,7 +70,7 @@ public static function encodeDER (
 |  | Type | Description |
 |-----|-----|-----|
 | `$source` | `mixed` | the data to convert |
-| `$mapping` | `array` | rules to convert by (check the example on https://gihub.com/vakata/asn1) |
+| `$mapping` | `array` | rules to convert by (check the example on https://github.com/vakata/asn1) |
 |  |  |  |
 | `return` | `string` | raw DER output (base64_encode if needed) |
 
@@ -91,7 +91,7 @@ public static function decodeDER (
 |  | Type | Description |
 |-----|-----|-----|
 | `$encoded` | `string` | raw DER input |
-| `$mapping` | `array`, `null` | optional mapping to follow (check the example on https://gihub.com/vakata/asn1) |
+| `$mapping` | `array`, `null` | optional mapping to follow (check the example on https://github.com/vakata/asn1) |
 |  |  |  |
 | `return` | `array` | the decoded object |
 
