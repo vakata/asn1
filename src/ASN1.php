@@ -511,9 +511,10 @@ class ASN1
      * Decode DER formatted data.
      * @param  string     $encoded raw DER input
      * @param  array|null $mapping optional mapping to follow (check the example on https://gihub.com/vakata/asn1)
+     * @param  boolean    $raw     optional whether to return raw output or not
      * @return array               the decoded object
      */
-    public static function decodeDER($encoded, array $mapping = null, bool $raw = false)
+    public static function decodeDER($encoded, array $mapping = null, $raw = false)
     {
         $decoded = static::decode($encoded);
         if (count($decoded) === 1) {
