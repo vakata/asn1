@@ -314,7 +314,7 @@ class ASN1
     /**
      * Encode some data to DER using a mapping array.
      * @param  mixed     $source  the data to convert
-     * @param  array     $mapping rules to convert by (check the example on https://gihub.com/vakata/asn1)
+     * @param  array     $mapping rules to convert by (check the example on https://github.com/vakata/asn1)
      * @return string             raw DER output (base64_encode if needed)
      */
     public static function encodeDER($source, $mapping)
@@ -510,7 +510,7 @@ class ASN1
     /**
      * Decode DER formatted data.
      * @param  string     $encoded raw DER input
-     * @param  array|null $mapping optional mapping to follow (check the example on https://gihub.com/vakata/asn1)
+     * @param  array|null $mapping optional mapping to follow (check the example on https://github.com/vakata/asn1)
      * @return array               the decoded object
      */
     public static function decodeDER($encoded, array $mapping = null, bool $raw = false)
