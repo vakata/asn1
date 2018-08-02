@@ -387,7 +387,7 @@ class ASN1
                 return $temp;
             case static::TYPE_INTEGER:
             case static::TYPE_ENUMERATED:
-                if (!isset($mapping['mapping']) && $mapping['base'] === 16) {
+                if (!isset($mapping['mapping']) && isset($mapping['base']) && $mapping['base'] === 16) {
                     $value = hex2bin($source);
                 } else {
                     if (!isset($mapping['mapping'])) {
