@@ -153,13 +153,13 @@ class Certificate
      * @param  string               $data the certificate
      * @return array                      the parsed certificate
      */
-    public static function parseData($data)
+    public static function parseData($data, bool $meta = false)
     {
         if (strpos($data, '-BEGIN CERTIFICATE-') !== false) {
             $data = str_replace(['-----BEGIN CERTIFICATE-----', '-----END CERTIFICATE-----', "\r", "\n"], '', $data);
             $data = base64_decode($data);
         }
-        return ASN1::decodeDER($data, static::$x509v3);
+        return ASN1::decodeDER($data, static::$x509v3, false, $meta);
     }
 
     /**
@@ -168,8 +168,8 @@ class Certificate
      * @return array                      the parsed certificate
      * @codeCoverageIgnore
      */
-    public static function parseFile($path)
+    public static function parseFile($path, bool $meta = false)
     {
-        return static::parseData(file_get_contents($path));
+        return static::parseData(file_get_contents($path), $meta);
     }
 }

@@ -46,6 +46,8 @@ class ASN1
     const TYPE_CHOICE            = -1;
     const TYPE_ANY               = -2;
     const TYPE_ANY_RAW           = -3;
+    const TYPE_ANY_SKIP          = -4;
+    const TYPE_ANY_DER           = -5;
 
     public static $oids = [
         'sha1' =>                 '1.3.14.3.2.26',
@@ -340,22 +342,31 @@ class ASN1
                     }
                     break;
                 }
-
-                foreach ($mapping['children'] as $key => $child) {
-                    if (!array_key_exists($key, $source)) {
-                        if (!isset($child['optional'])) {
+                if (isset($mapping['repeat'])) {
+                    foreach ($source as $content) {
+                        $temp = static::encodeDER($content, $mapping['repeat']);
+                        if ($temp === false) {
                             return false;
                         }
-                        continue;
+                        $value .= $temp;
                     }
-                    $temp = static::encodeDER($source[$key], $child);
-                    if ($temp === false) {
-                        return false;
+                } else {
+                    foreach ($mapping['children'] as $key => $child) {
+                        if (!array_key_exists($key, $source)) {
+                            if (!isset($child['optional'])) {
+                                return false;
+                            }
+                            continue;
+                        }
+                        $temp = static::encodeDER($source[$key], $child);
+                        if ($temp === false) {
+                            return false;
+                        }
+                        if ($temp === '') {
+                            continue;
+                        }
+                        $value .= $temp;
                     }
-                    if ($temp === '') {
-                        continue;
-                    }
-                    $value .= $temp;
                 }
                 break;
             case static::TYPE_CHOICE:
@@ -376,14 +387,18 @@ class ASN1
                 return $temp;
             case static::TYPE_INTEGER:
             case static::TYPE_ENUMERATED:
-                if (!isset($mapping['mapping'])) {
-                    $value = static::toBase256((int)$source);
+                if (!isset($mapping['mapping']) && $mapping['base'] === 16) {
+                    $value = hex2bin($source);
                 } else {
-                    $value = array_search($source, $mapping['mapping']);
-                    if ($value === false) {
-                        return false;
+                    if (!isset($mapping['mapping'])) {
+                        $value = static::toBase256($source, $mapping['base'] ?? 10);
+                    } else {
+                        $value = array_search($source, $mapping['mapping']);
+                        if ($value === false) {
+                            return false;
+                        }
+                        $value = static::toBase256($value, $mapping['base'] ?? 10);
                     }
-                    $value = static::toBase256((int)$value);
                 }
                 if (!strlen($value)) {
                     $value = chr(0);
@@ -435,9 +450,9 @@ class ASN1
                 if (!isset($source) && $mapping['optional']) {
                     return;
                 }
-                $oid = preg_match('#(?:\d+\.)+#', $source) ?
-                  $source :
-                  isset(static::$oids[$source]) ? static::$oids[$source] : false;
+                $oid = preg_match('(^(\d+\.?)+$)', $source) ?
+                    $source :
+                    (static::$oids[$source] ?? false);
                 if ($oid === false) {
                     throw new ASN1Exception('Invalid OID');
                 }
@@ -513,7 +528,7 @@ class ASN1
      * @param  array|null $mapping optional mapping to follow (check the example on https://gihub.com/vakata/asn1)
      * @return array               the decoded object
      */
-    public static function decodeDER($encoded, array $mapping = null, bool $raw = false)
+    public static function decodeDER($encoded, array $mapping = null, bool $raw = false, bool $meta = false)
     {
         $decoded = static::decode($encoded);
         if (count($decoded) === 1) {
@@ -521,7 +536,11 @@ class ASN1
         }
         $result = null;
         if ($mapping) {
-            static::map($decoded, $mapping, $result);
+            if ($meta) {
+                static::mapMeta($decoded, $mapping, $result, $encoded);
+            } else {
+                static::map($decoded, $mapping, $result, $encoded);
+            }
         } elseif ($raw) {
             return $decoded;
         } else {
@@ -539,8 +558,9 @@ class ASN1
             rewind($stream);
         }
         $result = [];
-        $read = 0;
+        $total = 0;
         while (!feof($stream)) {
+            $read = 0;
             $identifier = ord(fread($stream, 1));
             $read += 1;
             $constructed = ($identifier >> 5) & 1; // 6th bit
@@ -599,7 +619,7 @@ class ASN1
 
             if ($class !== static::CLASS_UNIVERSAL) {
                 if ($constructed) {
-                    $contents = static::decode($contents, $start + $read);
+                    $contents = static::decode($contents, $total + $start + $read);
                     if (count($contents) === 1) {
                         $contents = $contents[0];
                     }
@@ -620,7 +640,7 @@ class ASN1
                         return false;
                     case static::TYPE_BIT_STRING:
                         if ($constructed) {
-                            $temp = static::decode($contents, $start + $read);
+                            $temp = static::decode($contents, $total + $start + $read);
                             $real = '';
                             for ($i = 0; $i < count($temp) - 1; $i++) {
                                 $real .= $temp['contents'];
@@ -633,7 +653,7 @@ class ASN1
                         if ($constructed) {
                             $contents = implode('', array_map(function ($v) {
                                 return $v['contents'];
-                            }, static::decode($contents, $start + $read)));
+                            }, static::decode($contents, $total + $start + $read)));
                         }
                         break;
                     case static::TYPE_NULL:
@@ -641,7 +661,7 @@ class ASN1
                         break;
                     case static::TYPE_SEQUENCE:
                     case static::TYPE_SET:
-                        $contents = static::decode($contents, $start + $read);
+                        $contents = static::decode($contents, $total + $start + $read);
                         break;
                     case static::TYPE_OBJECT_IDENTIFIER:
                         $real = '';
@@ -680,17 +700,20 @@ class ASN1
                 $result[] = [
                     'class'    => $class,
                     'tag'      => $tag,
-                    'start'    => $start,
+                    'start'    => $total + $start,
+                    'cstart'   => $total + $start + $read,
+                    'clength'  => $length,
                     'length'   => $length + $read,
                     'contents' => $contents
                 ];
             }
+            $total += $length + $read;
         }
 
         return $result;
     }
 
-    protected static function map($decoded, $mapping, &$result)
+    protected static function map($decoded, $mapping, &$result, $encoded)
     {
         while ($decoded['class'] !== 0 && isset($decoded['contents']) && is_array($decoded['contents'])) {
             $decoded = $decoded['contents'];
@@ -699,6 +722,10 @@ class ASN1
             foreach ($mapping['children'] as $child) {
                 if ($decoded['tag'] === $child['tag']) {
                     $mapping = $child;
+                    if ($child['value']) {
+                        $result = $child['value'];
+                        return true;
+                    }
                     break;
                 }
             }
@@ -707,7 +734,7 @@ class ASN1
             in_array($decoded['tag'], [ASN1::TYPE_SEQUENCE, ASN1::TYPE_SET])) {
             $mapping['tag'] = $decoded['tag'];
         }
-        if (!in_array($mapping['tag'], [ASN1::TYPE_ANY, ASN1::TYPE_ANY_RAW]) && $mapping['tag'] !== $decoded['tag']) {
+        if (!in_array($mapping['tag'], [ASN1::TYPE_ANY, ASN1::TYPE_ANY_RAW, ASN1::TYPE_ANY_SKIP, ASN1::TYPE_ANY_DER]) && $mapping['tag'] !== $decoded['tag']) {
             if (!isset($mapping['optional']) || !$mapping['optional']) {
                 throw new ASN1Exception('Decoded data does not match mapping');
             }
@@ -717,6 +744,12 @@ class ASN1
             $mapping['tag'] = $decoded['tag'];
         }
         switch ($mapping['tag']) {
+            case static::TYPE_ANY_DER:
+                $result = substr($encoded, $decoded['start'], $decoded['length']);
+                return true;
+            case static::TYPE_ANY_SKIP:
+                $result = null;
+                return true;
             case static::TYPE_ANY_RAW:
                 static::values($decoded, $result);
                 break;
@@ -726,7 +759,8 @@ class ASN1
                         static::map(
                             isset($decoded['contents'][$i]) ? $decoded['contents'][$i] : null,
                             $mapping['repeat'],
-                            $result[$i]
+                            $result[$i],
+                            $encoded
                         );
                     }
                 } else {
@@ -735,7 +769,7 @@ class ASN1
                         $result[$k] = null;
                         foreach ($temp as $kk => $vv) {
                             if ($v['tag'] === ASN1::TYPE_ANY || $v['tag'] === $vv['tag']) {
-                                if (static::map($vv, $v, $result[$k])) {
+                                if (static::map($vv, $v, $result[$k], $encoded)) {
                                     unset($temp[$kk]);
                                 } else {
                                     $result[$k] = null;
@@ -757,7 +791,8 @@ class ASN1
                         static::map(
                             isset($decoded['contents'][$i]) ? $decoded['contents'][$i] : null,
                             $mapping['repeat'],
-                            $result[$i]
+                            $result[$i],
+                            $encoded
                         );
                     }
                 } else {
@@ -766,7 +801,8 @@ class ASN1
                         if (static::map(
                                 isset($decoded['contents'][$i]) ? $decoded['contents'][$i] : null,
                                 $v,
-                                $result[$k]
+                                $result[$k],
+                                $encoded
                         )) {
                             $i++;
                         }
@@ -781,7 +817,7 @@ class ASN1
                 break;
             case static::TYPE_OCTET_STRING:
                 if (isset($mapping['der']) && $mapping['der']) {
-                    $result = static::decodeDER($decoded['contents']);
+                    $result = static::decodeDER($decoded['contents'], $mapping['mapping'] ?? null);
                 } else {
                     $result = base64_encode($decoded['contents']);
                 }
@@ -846,6 +882,188 @@ class ASN1
                 $result = $decoded['contents'];
                 if (isset($mapping['mapping']) && isset($mapping['mapping'][$result])) {
                     $result = $mapping['mapping'][$result];
+                }
+                break;
+        }
+        return true;
+    }
+
+    protected static function mapMeta($decoded, $mapping, &$result, $encoded)
+    {
+        while ($decoded['class'] !== 0 && isset($decoded['contents']) && is_array($decoded['contents'])) {
+            $decoded = $decoded['contents'];
+        }
+        $result = [
+            'raw'    => substr($encoded, $decoded['start'], $decoded['length']),
+            'start'  => $decoded['start'],
+            'length' => $decoded['length'],
+            'tag'    => $decoded['tag'],
+            'value'  => []
+        ];
+        if ($mapping['tag'] === ASN1::TYPE_CHOICE) {
+            foreach ($mapping['children'] as $child) {
+                if ($decoded['tag'] === $child['tag']) {
+                    $mapping = $child;
+                    if ($child['value']) {
+                        $result['value'] = $child['value'];
+                        return true;
+                    }
+                    break;
+                }
+            }
+        }
+        if (in_array($mapping['tag'], [ASN1::TYPE_SEQUENCE, ASN1::TYPE_SET]) &&
+            in_array($decoded['tag'], [ASN1::TYPE_SEQUENCE, ASN1::TYPE_SET])) {
+            $mapping['tag'] = $decoded['tag'];
+        }
+        if (!in_array($mapping['tag'], [ASN1::TYPE_ANY, ASN1::TYPE_ANY_RAW, ASN1::TYPE_ANY_SKIP, ASN1::TYPE_ANY_DER]) && $mapping['tag'] !== $decoded['tag']) {
+            if (!isset($mapping['optional']) || !$mapping['optional']) {
+                throw new ASN1Exception('Decoded data does not match mapping');
+            }
+            return false;
+        }
+        if ($mapping['tag'] === ASN1::TYPE_ANY && isset($decoded['tag'])) {
+            $mapping['tag'] = $decoded['tag'];
+        }
+        switch ($mapping['tag']) {
+            case static::TYPE_ANY_DER:
+                $result['value'] = substr($encoded, $decoded['start'], $decoded['length']);
+                return true;
+            case static::TYPE_ANY_SKIP:
+                $result['value'] = null;
+                return true;
+            case static::TYPE_ANY_RAW:
+                static::values($decoded, $result['value']);
+                break;
+            case static::TYPE_SET:
+                if (isset($mapping['repeat'])) {
+                    foreach ($decoded['contents'] as $i => $v) {
+                        static::mapMeta(
+                            isset($decoded['contents'][$i]) ? $decoded['contents'][$i] : null,
+                            $mapping['repeat'],
+                            $result['value'][$i],
+                            $encoded
+                        );
+                    }
+                } else {
+                    $temp = $decoded['contents'];
+                    foreach ($mapping['children'] as $k => $v) {
+                        $result['value'][$k] = null;
+                        foreach ($temp as $kk => $vv) {
+                            if ($v['tag'] === ASN1::TYPE_ANY || $v['tag'] === $vv['tag']) {
+                                if (static::mapMeta($vv, $v, $result['value'][$k], $encoded)) {
+                                    unset($temp[$kk]);
+                                } else {
+                                    $result['value'][$k] = null;
+                                }
+                                break;
+                            }
+                        }
+                        if ($result['value'][$k] === null && (!isset($v['optional']) || !$v['optional'])) {
+                            throw new ASN1Exception('Decoded data does not match mapping');
+                        }
+                    }
+                }
+                break;
+            case static::TYPE_SEQUENCE:
+                $result['value'] = [];
+                $i = 0;
+                if (isset($mapping['repeat'])) {
+                    foreach ($decoded['contents'] as $i => $v) {
+                        static::mapMeta(
+                            isset($decoded['contents'][$i]) ? $decoded['contents'][$i] : null,
+                            $mapping['repeat'],
+                            $result['value'][$i],
+                            $encoded
+                        );
+                    }
+                } else {
+                    foreach ($mapping['children'] as $k => $v) {
+                        $result['value'][$k] = null;
+                        if (static::mapMeta(
+                                isset($decoded['contents'][$i]) ? $decoded['contents'][$i] : null,
+                                $v,
+                                $result['value'][$k],
+                                $encoded
+                        )) {
+                            $i++;
+                        }
+                    }
+                }
+                break;
+            case static::TYPE_OBJECT_IDENTIFIER:
+                $result['value'] = array_search($decoded['contents'], static::$oids);
+                if ($result['value'] === false) {
+                    $result['value'] = $decoded['contents'];
+                }
+                break;
+            case static::TYPE_OCTET_STRING:
+                if (isset($mapping['der']) && $mapping['der']) {
+                    $result['value'] = static::decodeDER($decoded['contents'], $mapping['mapping'] ?? null, false, true);
+                } else {
+                    $result['value'] = base64_encode($decoded['contents']);
+                }
+                break;
+            case static::TYPE_INTEGER:
+                $base = isset($mapping['base']) && (int)$mapping['base'] ? (int)$mapping['base'] : 10;
+                if ($base < 3) {
+                    $result['value'] = $decoded['contents'];
+                } else {
+                    if (strlen($decoded['contents']) > 53 && $base === 16) {
+                        $hex = '';
+                        for ($i = strlen($decoded['contents']) - 4; $i >= 0; $i-=4) {
+                            $hex .= dechex(bindec(substr($decoded['contents'], $i, 4)));
+                        }
+                        $result['value'] = strrev($hex);
+                    } else {
+                        $temp = base_convert($decoded['contents'], 2, $base);
+                        if ($base === 10) {
+                            $temp = (int)$temp;
+                        }
+                        $result['value'] = $temp;
+                    }
+                }
+                if (isset($mapping['mapping']) && isset($mapping['mapping'][$result['value']])) {
+                    $result['value'] = $mapping['mapping'][$result['value']];
+                }
+                break;
+            case static::TYPE_UTC_TIME:
+                $content = $decoded['contents'];
+                $format = 'YmdHis';
+                $matches = [];
+                if (preg_match('#^(\d{10})(Z|[+-]\d{4})$#', $content, $matches)) {
+                    $content = $matches[1] . '00' . $matches[2];
+                }
+                $prefix = substr($content, 0, 2) >= 50 ? '19' : '20';
+                $content = $prefix . $content;
+                if ($content[strlen($content) - 1] == 'Z') {
+                    $content = substr($content, 0, -1) . '+0000';
+                }
+                if (strpos($content, '-') !== false || strpos($content, '+') !== false) {
+                    $format.= 'O';
+                }
+                $result['value'] = @DateTime::createFromFormat($format, $content);
+                $result['value'] = $result['value'] ? $result['value']->getTimestamp() : false;
+                break;
+            case static::TYPE_GENERALIZED_TIME:
+                $content = $decoded['contents'];
+                $format = 'YmdHis';
+                if (strpos($content, '.') !== false) {
+                    $format.= '.u';
+                }
+                if ($content[strlen($content) - 1] == 'Z') {
+                    $content = substr($content, 0, -1) . '+0000';
+                }
+                if (strpos($content, '-') !== false || strpos($content, '+') !== false) {
+                    $format.= 'O';
+                }
+                $result['value'] = @DateTime::createFromFormat($format, $content);
+                $result['value'] = $result['value'] ? $result['value']->getTimestamp() : false;
+                break;
+            default:
+                $result['value'] = $decoded['contents'];
+                if (isset($mapping['mapping']) && isset($mapping['mapping'][$result['value']])) {
+                    $result['value'] = $mapping['mapping'][$result['value']];
                 }
                 break;
         }
