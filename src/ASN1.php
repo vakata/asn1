@@ -723,7 +723,7 @@ class ASN1
             foreach ($mapping['children'] as $child) {
                 if ($decoded['tag'] === $child['tag']) {
                     $mapping = $child;
-                    if ($child['value']) {
+                    if (isset($child['value']) && $child['value']) {
                         $result = $child['value'];
                         return true;
                     }
@@ -905,7 +905,7 @@ class ASN1
             foreach ($mapping['children'] as $child) {
                 if ($decoded['tag'] === $child['tag']) {
                     $mapping = $child;
-                    if ($child['value']) {
+                    if (isset($child['value']) && $child['value']) {
                         $result['value'] = $child['value'];
                         return true;
                     }
