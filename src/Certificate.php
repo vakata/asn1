@@ -153,7 +153,7 @@ class Certificate
      * @param  string               $data the certificate
      * @return array                      the parsed certificate
      */
-    public static function parseData($data, bool $meta = false)
+    public static function parseData($data, $meta = false)
     {
         if (strpos($data, '-BEGIN CERTIFICATE-') !== false) {
             $data = str_replace(['-----BEGIN CERTIFICATE-----', '-----END CERTIFICATE-----', "\r", "\n"], '', $data);
@@ -168,7 +168,7 @@ class Certificate
      * @return array                      the parsed certificate
      * @codeCoverageIgnore
      */
-    public static function parseFile($path, bool $meta = false)
+    public static function parseFile($path, $meta = false)
     {
         return static::parseData(file_get_contents($path), $meta);
     }
