@@ -797,6 +797,10 @@ class ASN1
                         );
                     }
                 } else {
+                    if (!isset($mapping['children'])) {
+                        $result = null;
+                        return true;
+                    }
                     foreach ($mapping['children'] as $k => $v) {
                         $result[$k] = null;
                         if (static::map(
@@ -979,6 +983,10 @@ class ASN1
                         );
                     }
                 } else {
+                    if (!isset($mapping['children'])) {
+                        $result = null;
+                        return true;
+                    }
                     foreach ($mapping['children'] as $k => $v) {
                         $result['value'][$k] = null;
                         if (static::mapMeta(
