@@ -391,13 +391,13 @@ class ASN1
                     $value = hex2bin($source);
                 } else {
                     if (!isset($mapping['mapping'])) {
-                        $value = static::toBase256($source, $mapping['base'] ?? 10);
+                        $value = static::toBase256($source, isset($mapping['base']) ? $mapping['base'] : 10);
                     } else {
                         $value = array_search($source, $mapping['mapping']);
                         if ($value === false) {
                             return false;
                         }
-                        $value = static::toBase256($value, $mapping['base'] ?? 10);
+                        $value = static::toBase256($value, isset($mapping['base']) ? $mapping['base'] : 10);
                     }
                 }
                 if (!strlen($value)) {
@@ -452,7 +452,7 @@ class ASN1
                 }
                 $oid = preg_match('(^(\d+\.?)+$)', $source) ?
                     $source :
-                    (static::$oids[$source] ?? false);
+                    (isset(static::$oids[$source]) ? static::$oids[$source] : false);
                 if ($oid === false) {
                     throw new ASN1Exception('Invalid OID');
                 }
@@ -818,7 +818,7 @@ class ASN1
                 break;
             case static::TYPE_OCTET_STRING:
                 if (isset($mapping['der']) && $mapping['der']) {
-                    $result = static::decodeDER($decoded['contents'], $mapping['mapping'] ?? null);
+                    $result = static::decodeDER($decoded['contents'], isset($mapping['mapping']) ? $mapping['mapping'] : null);
                 } else {
                     $result = base64_encode($decoded['contents']);
                 }
@@ -1000,7 +1000,7 @@ class ASN1
                 break;
             case static::TYPE_OCTET_STRING:
                 if (isset($mapping['der']) && $mapping['der']) {
-                    $result['value'] = static::decodeDER($decoded['contents'], $mapping['mapping'] ?? null, false, true);
+                    $result['value'] = static::decodeDER($decoded['contents'], isset($mapping['mapping']) ? $mapping['mapping'] : null, false, true);
                 } else {
                     $result['value'] = base64_encode($decoded['contents']);
                 }
