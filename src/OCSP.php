@@ -245,7 +245,7 @@ class OCSP
                                     'tag' => ASN1::TYPE_SEQUENCE,
                                     'optional' => true,
                                     'repeat' => [
-                                        'tag' => ASN1::TYPE_ANY_SKIP,
+                                        'tag' => ASN1::TYPE_ANY_DER,
                                     ]
                                 ]
                             ]
@@ -300,5 +300,15 @@ class OCSP
     public static function parseResponse($data)
     {
         return ASN1::decodeDER($data, static::$response);
+    }
+    /**
+     * Extract the OCSP response subject as DER (useful as it is the signed part of the message)
+     */
+    public static function parseResponseSubject($data)
+    {
+        $map = static::$response;
+        $map['children']['responseBytes']['children']['response']['mapping']['children']['tbsResponseData']['tag'] = ASN1::TYPE_ANY_DER;
+        $temp = ASN1::decodeDER($data, $map);
+        return $temp['responseBytes']['response']['tbsResponseData'];
     }
 }
