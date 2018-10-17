@@ -714,7 +714,7 @@ class ASN1
         return $result;
     }
 
-    protected static function map($decoded, $mapping, &$result, $encoded)
+    protected static function map($decoded, $mapping, &$result, &$encoded)
     {
         while ($decoded['class'] !== 0 && isset($decoded['contents']) && is_array($decoded['contents'])) {
             $decoded = $decoded['contents'];
@@ -893,7 +893,7 @@ class ASN1
         return true;
     }
 
-    protected static function mapMeta($decoded, $mapping, &$result, $encoded)
+    protected static function mapMeta($decoded, $mapping, &$result, &$encoded)
     {
         while ($decoded['class'] !== 0 && isset($decoded['contents']) && is_array($decoded['contents'])) {
             $decoded = $decoded['contents'];
