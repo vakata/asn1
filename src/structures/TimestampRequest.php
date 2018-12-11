@@ -34,7 +34,7 @@ class TimestampRequest extends Structure
     public static function generateFromData($data, $nonce = true, $requireCert = false, $alg = 'sha1', $policy = null)
     {
         if (!in_array($alg, ['sha1', 'sha256', 'sha384', 'sha512', 'md5'])) {
-            throw new TimestampException('Unsupported hash algorithm');
+            throw new ASN1Exception('Unsupported hash algorithm');
         }
         $hash = hash($alg, $data, true);
         if ($nonce === true) {
