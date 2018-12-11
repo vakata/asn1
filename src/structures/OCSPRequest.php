@@ -74,7 +74,11 @@ class OCSPRequest extends Structure
                                             ],
                                         ]
                                     ],
-                                    'extensions' => Common::extensions() + ['name' => 0, 'implicit' => false, 'optional' => true ]
+                                    'extensions' => Common::extensions() + [
+                                        'name' => 0,
+                                        'implicit' => false,
+                                        'optional' => true
+                                    ]
                                 ]
                             ]
                         ],
@@ -103,5 +107,3 @@ class OCSPRequest extends Structure
         ];
     }
 }
-
-

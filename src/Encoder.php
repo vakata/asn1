@@ -212,7 +212,9 @@ class Encoder
                 return chr($tag) . $length . $value;
             } else {
                 $value = chr($tag) . $length . $value;
-                return chr(((ASN1::CLASS_CONTEXT_SPECIFIC ?? 2) << 6) | 0x20 | $mapping['name']) . static::length(strlen($value)) . $value;
+                return chr(((ASN1::CLASS_CONTEXT_SPECIFIC ?? 2) << 6) | 0x20 | $mapping['name']) .
+                    static::length(strlen($value)) .
+                    $value;
             }
         }
         return chr($tag) . $length . $value;

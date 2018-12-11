@@ -12,7 +12,8 @@ class OCSPResponse extends Structure
     public function subject()
     {
         $map = static::map();
-        $map['children']['responseBytes']['children']['response']['map']['children']['tbsResponseData']['tag'] = ASN1::TYPE_ANY_DER;
+        $map['children']['responseBytes']['children']['response']['map']['children']['tbsResponseData']['tag'] =
+            ASN1::TYPE_ANY_DER;
         $temp = $this->data->map($map);
         return $temp['responseBytes']['response']['tbsResponseData'];
     }
@@ -99,9 +100,21 @@ class OCSPResponse extends Structure
                                                         'certStatus' => [
                                                             'tag' => ASN1::TYPE_CHOICE,
                                                             'children' => [
-                                                                'good'    => [ 'name' => 0, 'tag' => 0, 'value' => 'good' ],
-                                                                'revoked' => [ 'name' => 1, 'tag' => 1, 'value' => 'revoked' ],
-                                                                'unknown' => [ 'name' => 2, 'tag' => 2, 'value' => 'unknown' ],
+                                                                'good'    => [
+                                                                    'name' => 0,
+                                                                    'tag' => 0,
+                                                                    'value' => 'good'
+                                                                ],
+                                                                'revoked' => [
+                                                                    'name' => 1,
+                                                                    'tag' => 1,
+                                                                    'value' => 'revoked'
+                                                                ],
+                                                                'unknown' => [
+                                                                    'name' => 2,
+                                                                    'tag' => 2,
+                                                                    'value' => 'unknown'
+                                                                ],
                                                             ]
                                                         ],
                                                         'thisUpdate' => [ 'tag' => ASN1::TYPE_GENERALIZED_TIME ],
@@ -111,7 +124,10 @@ class OCSPResponse extends Structure
                                                             'implicit' => false,
                                                             'optional' => true
                                                         ],
-                                                        'extensions' => Common::extensions() + [ 'name' => 1, 'implicit' => false ]
+                                                        'extensions' => Common::extensions() + [
+                                                            'name' => 1,
+                                                            'implicit' => false
+                                                        ]
                                                     ]
                                                 ]
                                             ],

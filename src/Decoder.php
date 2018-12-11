@@ -202,7 +202,9 @@ class Decoder
                 }
             }
             if ($header['class'] !== ASN1::CLASS_UNIVERSAL && $header['constructed']) {
-                $header['children'] = $this->structure($header['length'] ? $header['start'] + $header['length'] - 1 : null);
+                $header['children'] = $this->structure(
+                    $header['length'] ? $header['start'] + $header['length'] - 1 : null
+                );
                 if ($header['length'] === null) {
                     $this->reader->byte();
                     $header['length'] = $this->reader->pos() - $header['start'];
@@ -213,7 +215,9 @@ class Decoder
                 if ($header['class'] === ASN1::CLASS_UNIVERSAL &&
                     in_array($header['tag'], [ASN1::TYPE_SET, ASN1::TYPE_SEQUENCE])
                 ) {
-                    $header['children'] = $this->structure($header['length'] ? $header['start'] + $header['length'] - 1 : null);
+                    $header['children'] = $this->structure(
+                        $header['length'] ? $header['start'] + $header['length'] - 1 : null
+                    );
                     if ($header['length'] === null) {
                         $this->reader->byte();
                         $header['length'] = $this->reader->pos() - $header['start'];
@@ -373,7 +377,13 @@ class Decoder
                                 if ($v['tag'] === $vv['tag'] ||
                                     in_array(
                                         $v['tag'],
-                                        [ ASN1::TYPE_ANY, ASN1::TYPE_ANY_DER, ASN1::TYPE_ANY_RAW, ASN1::TYPE_ANY_SKIP, ASN1::TYPE_CHOICE ]
+                                        [
+                                            ASN1::TYPE_ANY,
+                                            ASN1::TYPE_ANY_DER,
+                                            ASN1::TYPE_ANY_RAW,
+                                            ASN1::TYPE_ANY_SKIP,
+                                            ASN1::TYPE_CHOICE
+                                        ]
                                     )
                                 ) {
                                     try {
@@ -406,7 +416,9 @@ class Decoder
                         $result = [];
                         foreach ($skeleton['children'] as $vv) {
                             foreach ($map['children'] as $k => $v) {
-                                if (isset($v['name']) && $vv['class'] !== ASN1::CLASS_UNIVERSAL && (int)$v['name'] === $vv['tag']) {
+                                if (isset($v['name']) && $vv['class'] !== ASN1::CLASS_UNIVERSAL &&
+                                    (int)$v['name'] === $vv['tag']
+                                ) {
                                     if (isset($v['implicit']) && $v['implicit']) {
                                         $vv['class'] = ASN1::CLASS_UNIVERSAL;
                                         $vv['tag'] = $map['tag'];
@@ -422,7 +434,13 @@ class Decoder
                                         $v['tag'] === $vv['tag'] ||
                                         in_array(
                                             $v['tag'],
-                                            [ ASN1::TYPE_ANY, ASN1::TYPE_ANY_DER, ASN1::TYPE_ANY_RAW, ASN1::TYPE_ANY_SKIP, ASN1::TYPE_CHOICE ]
+                                            [
+                                                ASN1::TYPE_ANY,
+                                                ASN1::TYPE_ANY_DER,
+                                                ASN1::TYPE_ANY_RAW,
+                                                ASN1::TYPE_ANY_SKIP,
+                                                ASN1::TYPE_CHOICE
+                                            ]
                                         )
                                     )
                                 ) {
@@ -447,13 +465,17 @@ class Decoder
                     }
                     break;
                 case ASN1::TYPE_OBJECT_IDENTIFIER:
-                    return isset($map['resolve']) && $map['resolve'] ? ASN1::OIDtoText($skeleton['value']) : $skeleton['value'];
+                    return isset($map['resolve']) && $map['resolve'] ?
+                        ASN1::OIDtoText($skeleton['value']) :
+                        $skeleton['value'];
                 case ASN1::TYPE_OCTET_STRING:
                     if (isset($map['der']) && $map['der']) {
                         $temp = static::fromString($skeleton['value']);
                         return isset($map['map']) ? $temp->map($map['map']) : $temp->values();
                     } else {
-                        return isset($map['raw']) && $map['raw'] ? $skeleton['value'] : base64_encode($skeleton['value']);
+                        return isset($map['raw']) && $map['raw'] ?
+                            $skeleton['value'] :
+                            base64_encode($skeleton['value']);
                     }
                     break;
                 case ASN1::TYPE_INTEGER:
