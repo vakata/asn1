@@ -77,50 +77,50 @@ class ASN1Test extends \PHPUnit\Framework\TestCase
 	public function testCertificate()
 	{
 		$this->assertEquals(
-			file_get_contents(__DIR__ . '/samples/certificate.crt.dump'),
-			(string)Certificate::fromFile(__DIR__ . '/samples/certificate.crt')
+			str_replace("\r", "", file_get_contents(__DIR__ . '/samples/certificate.crt.dump')),
+			str_replace("\r", "", (string)Certificate::fromFile(__DIR__ . '/samples/certificate.crt'))
 		);
 	}
 	public function testCRL()
 	{
 		$this->assertEquals(
-			file_get_contents(__DIR__ . '/samples/revocation.crl.dump'),
-			(string)CRL::fromFile(__DIR__ . '/samples/revocation.crl')
+			str_replace("\r", "", file_get_contents(__DIR__ . '/samples/revocation.crl.dump')),
+			str_replace("\r", "", (string)CRL::fromFile(__DIR__ . '/samples/revocation.crl'))
 		);
 	}
 	public function testOCSPRequest()
 	{
 		$this->assertEquals(
-			file_get_contents(__DIR__ . '/samples/ocsp.req.dump'),
-			(string)OCSPRequest::fromFile(__DIR__ . '/samples/ocsp.req')
+			str_replace("\r", "", file_get_contents(__DIR__ . '/samples/ocsp.req.dump')),
+			str_replace("\r", "", (string)OCSPRequest::fromFile(__DIR__ . '/samples/ocsp.req'))
 		);
 	}
 	public function testOCSPResponse()
 	{
 		$this->assertEquals(
-			file_get_contents(__DIR__ . '/samples/ocsp.res.dump'),
-			(string)OCSPResponse::fromFile(__DIR__ . '/samples/ocsp.res')
+			str_replace("\r", "", file_get_contents(__DIR__ . '/samples/ocsp.res.dump')),
+			str_replace("\r", "", (string)OCSPResponse::fromFile(__DIR__ . '/samples/ocsp.res'))
 		);
 	}
 	public function testP7S()
 	{
 		$this->assertEquals(
-			file_get_contents(__DIR__ . '/samples/signed.p7s.dump'),
-			(string)P7S::fromFile(__DIR__ . '/samples/signed.p7s')
+			str_replace("\r", "", file_get_contents(__DIR__ . '/samples/signed.p7s.dump')),
+			str_replace("\r", "", (string)P7S::fromFile(__DIR__ . '/samples/signed.p7s'))
 		);
 	}
 	public function testTimestampRequest()
 	{
 		$this->assertEquals(
-			file_get_contents(__DIR__ . '/samples/timestamp.tsq.dump'),
-			(string)TimestampRequest::fromFile(__DIR__ . '/samples/timestamp.tsq')
+			str_replace("\r", "", file_get_contents(__DIR__ . '/samples/timestamp.tsq.dump')),
+			str_replace("\r", "", (string)TimestampRequest::fromFile(__DIR__ . '/samples/timestamp.tsq'))
 		);
 	}
 	public function testTimestampResponse()
 	{
 		$this->assertEquals(
-			file_get_contents(__DIR__ . '/samples/timestamp.tsr.dump'),
-			(string)TimestampResponse::fromFile(__DIR__ . '/samples/timestamp.tsr')
+			str_replace("\r", "", file_get_contents(__DIR__ . '/samples/timestamp.tsr.dump')),
+			str_replace("\r", "", (string)TimestampResponse::fromFile(__DIR__ . '/samples/timestamp.tsr'))
 		);
 	}
 }

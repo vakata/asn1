@@ -23,7 +23,7 @@
 |:-----------|:---------|
 | public static | <strong>OIDtoText(</strong><em>mixed</em> <strong>$id</strong>)</strong> : <em>void</em> |
 | public static | <strong>TextToOID(</strong><em>mixed</em> <strong>$text</strong>)</strong> : <em>void</em> |
-| public static | <strong>fromBase256(</strong><em>string</em> <strong>$string</strong>, <em>integer</em> <strong>$base=10</strong>)</strong> : <em>integer the converted number</em><br /><em>Convert a number from base256</em> |
+| public static | <strong>fromBase256(</strong><em>string</em> <strong>$string</strong>)</strong> : <em>integer/string the converted number</em><br /><em>Convert a number from base256</em> |
 | public static | <strong>toBase256(</strong><em>integer</em> <strong>$number</strong>, <em>integer</em> <strong>$base=10</strong>)</strong> : <em>string the number in base256</em><br /><em>Convert a number to base256</em> |
 
 <hr />
@@ -48,9 +48,9 @@
 | public | <strong>__construct(</strong><em>[\vakata\asn1\Reader](#class-vakataasn1reader)</em> <strong>$reader</strong>)</strong> : <em>void</em><br /><em>Create an instance by passing in an instantiated reader.</em> |
 | public static | <strong>fromFile(</strong><em>string</em> <strong>$path</strong>)</strong> : <em>[\vakata\asn1\Decoder](#class-vakataasn1decoder)</em><br /><em>Create a new instance from a file.</em> |
 | public static | <strong>fromString(</strong><em>string</em> <strong>$data</strong>)</strong> : <em>[\vakata\asn1\Decoder](#class-vakataasn1decoder)</em><br /><em>Create a new instance from an ASN1 string.</em> |
-| public | <strong>map(</strong><em>array</em> <strong>$map</strong>, <em>mixed</em> <strong>$skeleton=null</strong>)</strong> : <em>array</em><br /><em>Map the parsed data to a map</em> |
-| public | <strong>structure(</strong><em>mixed</em> <strong>$max=null</strong>)</strong> : <em>array</em><br /><em>Dump the parsed structure of the ASN1 data.</em> |
-| public | <strong>values(</strong><em>mixed</em> <strong>$skeleton=null</strong>)</strong> : <em>array</em><br /><em>Dump the parsed values only.</em> |
+| public | <strong>map(</strong><em>array</em> <strong>$map</strong>, <em>mixed</em> <strong>$skeleton=null</strong>)</strong> : <em>mixed in most cases this is an array, as all complex structures are either a sequence or a set</em><br /><em>Map the parsed data to a map</em> |
+| public | <strong>structure(</strong><em>mixed</em> <strong>$max=null</strong>)</strong> : <em>mixed in most cases this is an array, as all complex structures are either a sequence or a set</em><br /><em>Dump the parsed structure of the ASN1 data.</em> |
+| public | <strong>values(</strong><em>mixed</em> <strong>$skeleton=null</strong>)</strong> : <em>mixed in most cases this is an array, as all complex structures are either a sequence or a set</em><br /><em>Dump the parsed values only.</em> |
 | protected | <strong>decode(</strong><em>mixed</em> <strong>$header</strong>)</strong> : <em>void</em> |
 | protected | <strong>header()</strong> : <em>void</em> |
 
@@ -62,7 +62,7 @@
 
 | Visibility | Function |
 |:-----------|:---------|
-| public static | <strong>encode(</strong><em>mixed</em> <strong>$source</strong>, <em>array</em> <strong>$mapping</strong>)</strong> : <em>string raw DER output (base64_encode if needed)</em><br /><em>Encode some data to DER using a mapping array.</em> |
+| public static | <strong>encode(</strong><em>mixed</em> <strong>$source</strong>, <em>array</em> <strong>$mapping</strong>)</strong> : <em>mixed raw DER output (base64_encode if needed), false on failure</em><br /><em>Encode some data to DER using a mapping array.</em> |
 | protected static | <strong>length(</strong><em>mixed</em> <strong>$length</strong>)</strong> : <em>void</em> |
 
 <hr />
@@ -162,7 +162,7 @@
 | public static | <strong>fromFile(</strong><em>string</em> <strong>$path</strong>)</strong> : <em>[\vakata\asn1\structures\Structure](#class-vakataasn1structuresstructure-abstract)</em><br /><em>Create an instance from a file</em> |
 | public static | <strong>fromString(</strong><em>string</em> <strong>$data</strong>)</strong> : <em>[\vakata\asn1\structures\Structure](#class-vakataasn1structuresstructure-abstract)</em><br /><em>Create an instance from a string.</em> |
 | public | <strong>structure()</strong> : <em>array</em><br /><em>Output the raw ASN1 structure of the data.</em> |
-| public | <strong>toArray(</strong><em>\boolean</em> <strong>$valuesOnly=false</strong>)</strong> : <em>void</em><br /><em>Get the mapped or values only view of the parsed data.</em> |
+| public | <strong>toArray(</strong><em>\boolean</em> <strong>$valuesOnly=false</strong>)</strong> : <em>mixed</em><br /><em>Get the mapped or values only view of the parsed data.</em> |
 | protected static | <strong>abstract map()</strong> : <em>void</em> |
 
 <hr />
@@ -172,8 +172,8 @@
 | Visibility | Function |
 |:-----------|:---------|
 | public static | <strong>generateFromData(</strong><em>string</em> <strong>$data</strong>, <em>bool/boolean/string</em> <strong>$nonce=true</strong>, <em>bool/boolean</em> <strong>$requireCert=false</strong>, <em>string</em> <strong>$alg=`'sha1'`</strong>, <em>string/null</em> <strong>$policy=null</strong>)</strong> : <em>string the raw timestamp request</em><br /><em>Generate a timestamp request (tsq) for a string</em> |
+| public static | <strong>generateFromFile(</strong><em>string</em> <strong>$path</strong>, <em>bool/boolean/string</em> <strong>$nonce=true</strong>, <em>bool/boolean</em> <strong>$requireCert=false</strong>, <em>string</em> <strong>$alg=`'sha1'`</strong>, <em>string/null</em> <strong>$policy=null</strong>)</strong> : <em>string the raw timestamp request</em><br /><em>Generate a timestamp request (tsq) for a file path</em> |
 | public static | <strong>generateFromHash(</strong><em>string</em> <strong>$data</strong>, <em>bool/boolean/string</em> <strong>$nonce=true</strong>, <em>bool/boolean</em> <strong>$requireCert=false</strong>, <em>string</em> <strong>$alg=`'sha1'`</strong>, <em>string/null</em> <strong>$policy=null</strong>)</strong> : <em>string the raw timestamp request</em><br /><em>Generate a timestamp request (tsq) for a given hash</em> |
-| public static | <strong>generateRequestFromFile(</strong><em>string</em> <strong>$path</strong>, <em>bool/boolean/string</em> <strong>$nonce=true</strong>, <em>bool/boolean</em> <strong>$requireCert=false</strong>, <em>string</em> <strong>$alg=`'sha1'`</strong>, <em>string/null</em> <strong>$policy=null</strong>)</strong> : <em>string the raw timestamp request</em><br /><em>Generate a timestamp request (tsq) for a file path</em> |
 | public static | <strong>map()</strong> : <em>void</em> |
 
 *This class extends [\vakata\asn1\structures\Structure](#class-vakataasn1structuresstructure-abstract)*
