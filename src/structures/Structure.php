@@ -53,7 +53,7 @@ abstract class Structure
      * Get the mapped or values only view of the parsed data.
      *
      * @param boolean $valuesOnly should only values be returned or the map be used - defaults to `false` - use a map
-     * @return void
+     * @return mixed
      */
     public function toArray(bool $valuesOnly = false)
     {

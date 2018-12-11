@@ -14,7 +14,7 @@ class Encoder
      * Encode some data to DER using a mapping array.
      * @param  mixed     $source  the data to convert
      * @param  array     $mapping rules to convert by (check the example on https://github.com/vakata/asn1)
-     * @return string             raw DER output (base64_encode if needed)
+     * @return mixed             raw DER output (base64_encode if needed), false on failure
      */
     public static function encode($source, $mapping)
     {
@@ -79,7 +79,6 @@ class Encoder
                     if ($temp === '') {
                         continue;
                     }
-                    $tag = ord($temp[0]);
                 }
                 return $temp;
             case ASN1::TYPE_INTEGER:
@@ -94,7 +93,7 @@ class Encoder
                         if ($value === false) {
                             return false;
                         }
-                        $value = ASN1::toBase256($value, isset($mapping['base']) ? $mapping['base'] : 10);
+                        $value = ASN1::toBase256($value, isset($mapping['base']) ? (int)$mapping['base'] : 10);
                     }
                 }
                 if (!strlen($value)) {
@@ -109,9 +108,10 @@ class Encoder
                 break;
             case ASN1::TYPE_BIT_STRING:
                 if (isset($mapping['mapping'])) {
-                    $bits = array_fill(0, count($mapping['mapping']), 0);
+                    $mcnt = count($mapping['mapping']);
+                    $bits = array_fill(0, $mcnt, 0);
                     $size = 0;
-                    for ($i = 0; $i < count($mapping['mapping']); $i++) {
+                    for ($i = 0; $i < $mcnt; $i++) {
                         if (in_array($mapping['mapping'][$i], $source)) {
                             $bits[$i] = 1;
                             $size = $i;
@@ -127,14 +127,14 @@ class Encoder
 
                     $value = chr($offset);
 
-                    for ($i = $size + 1; $i < count($mapping['mapping']); $i++) {
+                    for ($i = $size + 1; $i < $mcnt; $i++) {
                         unset($bits[$i]);
                     }
 
                     $bits = implode('', array_pad($bits, $size + $offset + 1, 0));
                     $bytes = explode(' ', rtrim(chunk_split($bits, 8, ' ')));
                     foreach ($bytes as $byte) {
-                        $value.= chr(bindec($byte));
+                        $value.= chr((int)bindec($byte));
                     }
 
                     break;
@@ -151,10 +151,10 @@ class Encoder
                 if (!preg_match('(^(\d+\.?)+$)', $oid)) {
                     throw new ASN1Exception('Invalid OID');
                 }
-                $value = '';
                 $parts = explode('.', $oid);
                 $value = chr(40 * $parts[0] + $parts[1]);
-                for ($i = 2; $i < count($parts); $i++) {
+                $pcnt = count($parts);
+                for ($i = 2; $i < $pcnt; $i++) {
                     $temp = '';
                     if (!$parts[$i]) {
                         $temp = "\0";

@@ -52,7 +52,7 @@ class ASN1
     {
         $bin = base_convert($number, $base, 2);
         $res = "";
-        $len = ceil(strlen($bin) / 8) * 8;
+        $len = (int)ceil(strlen($bin) / 8) * 8;
         $bin = str_pad($bin, $len, "0", STR_PAD_LEFT);
         for ($i = ($len-8); $i >= 0; $i -= 8) {
             $res = chr(base_convert(substr($bin, $i, 8), 2, 10)) . $res;
@@ -62,10 +62,9 @@ class ASN1
     /**
      * Convert a number from base256
      * @param  string      $string the number to convert
-     * @param  integer     $base   the base to convert to (optional, defaults to 10)
-     * @return integer             the converted number
+     * @return integer|string      the converted number
      */
-    public static function fromBase256($string, $base = 10)
+    public static function fromBase256($string)
     {
         $number = "";
         for ($i = 0; $i < strlen($string); $i++) {

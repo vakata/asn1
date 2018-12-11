@@ -165,7 +165,6 @@ class Decoder
                 $result = @DateTime::createFromFormat($format, $contents);
                 return $result ? $result->getTimestamp() : false;
             case ASN1::TYPE_OBJECT_IDENTIFIER:
-                $real = '';
                 $temp = ord($contents[0]);
                 $real = sprintf('%d.%d', floor($temp / 40), $temp % 40);
                 $obid = 0;
@@ -188,7 +187,7 @@ class Decoder
      * Dump the parsed structure of the ASN1 data.
      *
      * @param mixed $max internal - do not use
-     * @return array
+     * @return mixed in most cases this is an array, as all complex structures are either a sequence or a set
      */
     public function structure($max = null)
     {
@@ -245,7 +244,7 @@ class Decoder
      * Dump the parsed values only.
      *
      * @param mixed $skeleton internal - do not use
-     * @return array
+     * @return mixed in most cases this is an array, as all complex structures are either a sequence or a set
      */
     public function values($skeleton = null)
     {
@@ -264,7 +263,7 @@ class Decoder
      *
      * @param array $map the map to use - look in the structure classes for example map arrays
      * @param mixed $skeleton internal - do not use
-     * @return array
+     * @return mixed in most cases this is an array, as all complex structures are either a sequence or a set
      */
     public function map($map, $skeleton = null)
     {
@@ -286,7 +285,7 @@ class Decoder
             }
         }
         if ($skeleton['class'] !== ASN1::CLASS_UNIVERSAL) {
-            if (isset($map['implicit']) && $v['implicit']) {
+            if (isset($map['implicit']) && $map['implicit']) {
                 $skeleton['class'] = ASN1::CLASS_UNIVERSAL;
                 $skeleton['tag'] = $map['tag'];
             } else {
@@ -463,7 +462,7 @@ class Decoder
                         if (strlen($skeleton['value']) > 53 && $base === 16) {
                             $hex = '';
                             for ($i = strlen($skeleton['value']) - 4; $i >= 0; $i-=4) {
-                                $hex .= dechex(bindec(substr($skeleton['value'], $i, 4)));
+                                $hex .= dechex((int)bindec(substr($skeleton['value'], $i, 4)));
                             }
                             $result = strrev($hex);
                         } else {

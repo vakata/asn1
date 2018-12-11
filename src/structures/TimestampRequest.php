@@ -3,6 +3,7 @@
 namespace vakata\asn1\structures;
 
 use \vakata\asn1\ASN1;
+use \vakata\asn1\ASN1Exception;
 use \vakata\asn1\Encoder;
 
 class TimestampRequest extends Structure
@@ -17,9 +18,9 @@ class TimestampRequest extends Structure
      * @return string                        the raw timestamp request
      * @codeCoverageIgnore
      */
-    public static function generateRequestFromFile($path, $nonce = true, $requireCert = false, $alg = 'sha1', $policy = null)
+    public static function generateFromFile($path, $nonce = true, $requireCert = false, $alg = 'sha1', $policy = null)
     {
-        return static::generateRequestFromData(file_get_contents($path), $none, $requireCert, $alg, $policy);
+        return static::generateFromData(file_get_contents($path), $none, $requireCert, $alg, $policy);
     }
     /**
      * Generate a timestamp request (tsq) for a string
@@ -68,7 +69,7 @@ class TimestampRequest extends Structure
     public static function generateFromHash($data, $nonce = true, $requireCert = false, $alg = 'sha1', $policy = null)
     {
         if (!in_array($alg, ['sha1', 'sha256', 'sha384', 'sha512', 'md5'])) {
-            throw new TimestampException('Unsupported hash algorithm');
+            throw new ASN1Exception('Unsupported hash algorithm');
         }
         if ($nonce === true) {
             $nonce = rand(1, PHP_INT_MAX);
