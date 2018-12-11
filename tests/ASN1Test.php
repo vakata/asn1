@@ -12,7 +12,7 @@ use vakata\asn1\structures\P7S;
 use vakata\asn1\structures\TimestampRequest;
 use vakata\asn1\structures\TimestampResponse;
 
-class ASN1Test extends \PHPUnit_Framework_TestCase
+class ASN1Test extends \PHPUnit\Framework\TestCase
 {
 	public function testEncodeDecode()
 	{

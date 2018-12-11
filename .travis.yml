@@ -1,8 +1,6 @@
 language: php
 
 php:
-  - 5.4
-  - 5.6
   - 7.0
 
 # This triggers builds to run on the new TravisCI infrastructure.
@@ -14,11 +12,8 @@ before_script:
   - travis_retry composer update ${COMPOSER_FLAGS} --no-interaction --prefer-source
 
 script:
-  - vendor/bin/phpunit
+  - vendor/bin/phpunit --coverage-clover=coverage.clover
 
 after_script:
-  - vendor/bin/test-reporter
-
-addons:
-  code_climate:
-    repo_token: 29b69ace6a940f3f6be9f7d9cbfb61ca5d69467b179ec53c7b1d77ebc85cd6c1
+    - bash -c 'wget https://scrutinizer-ci.com/ocular.phar'
+    - bash -c 'php ocular.phar code-coverage:upload --format=php-clover coverage.clover'

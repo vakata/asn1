@@ -12,14 +12,31 @@ class Decoder
 {
     protected $reader;
 
+    /**
+     * Create an instance by passing in an instantiated reader.
+     *
+     * @param Reader $reader
+     */
     public function __construct(Reader $reader)
     {
         $this->reader = $reader;
     }
+    /**
+     * Create a new instance from an ASN1 string.
+     *
+     * @param string $data the ASN1 data
+     * @return Decoder
+     */
     public static function fromString($data)
     {
         return new static(Reader::fromString($data));
     }
+    /**
+     * Create a new instance from a file.
+     *
+     * @param string $path the path to the file to parse
+     * @return Decoder
+     */
     public static function fromFile($path)
     {
         return new static(Reader::fromFile($path));
@@ -167,7 +184,12 @@ class Decoder
                 return $contents;
         }
     }
-
+    /**
+     * Dump the parsed structure of the ASN1 data.
+     *
+     * @param mixed $max internal - do not use
+     * @return array
+     */
     public function structure($max = null)
     {
         $skeleton = [];
@@ -219,6 +241,12 @@ class Decoder
         }
         return $skeleton;
     }
+    /**
+     * Dump the parsed values only.
+     *
+     * @param mixed $skeleton internal - do not use
+     * @return array
+     */
     public function values($skeleton = null)
     {
         $skeleton = $skeleton ?? $this->structure();
@@ -231,6 +259,13 @@ class Decoder
         }
         return $skeleton;
     }
+    /**
+     * Map the parsed data to a map
+     *
+     * @param array $map the map to use - look in the structure classes for example map arrays
+     * @param mixed $skeleton internal - do not use
+     * @return array
+     */
     public function map($map, $skeleton = null)
     {
         if ($skeleton === null && $this->reader->pos() !== 0) {
