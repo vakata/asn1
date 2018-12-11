@@ -44,9 +44,9 @@ class ASN1
 
     /**
      * Convert a number to base256
-     * @param  integer    $number the number to convert
-     * @param  integer    $base   the current base of the number (optional, defaults to 10)
-     * @return string             the number in base256
+     * @param  integer|string    $number the number to convert
+     * @param  integer           $base   the current base of the number (optional, defaults to 10)
+     * @return string            the number in base256
      */
     public static function toBase256($number, $base = 10)
     {
@@ -55,7 +55,7 @@ class ASN1
         $len = (int)ceil(strlen($bin) / 8) * 8;
         $bin = str_pad($bin, $len, "0", STR_PAD_LEFT);
         for ($i = ($len-8); $i >= 0; $i -= 8) {
-            $res = chr(base_convert(substr($bin, $i, 8), 2, 10)) . $res;
+            $res = chr((int)base_convert(substr($bin, $i, 8), 2, 10)) . $res;
         }
         return $res;
     }

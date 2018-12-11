@@ -355,6 +355,7 @@ class Decoder
                                             unset($temp[$kk]);
                                             break;
                                         } catch (ASN1Exception $e) {
+                                            // continue trying other children in case of failure
                                         }
                                     }
                                 }
@@ -431,6 +432,7 @@ class Decoder
                                         unset($map['children'][$k]);
                                         break;
                                     } catch (ASN1Exception $e) {
+                                        // continue trying other children in case of failure
                                     }
                                 }
                                 if (!isset($v['optional']) || !$v['optional']) {

@@ -13,9 +13,12 @@ class Reader
     public static function fromString($data)
     {
         $stream = fopen('php://temp', 'r+');
-        fwrite($stream, $data);
-        rewind($stream);
-        return new static($stream);
+        if ($stream) {
+            fwrite($stream, $data);
+            rewind($stream);
+            return new static($stream);
+        }
+        throw new ASN1Exception('Could not create temp stream');
     }
     public static function fromFile($path)
     {
@@ -46,7 +49,7 @@ class Reader
         $tmp = '';
         while (!feof($this->stream)) {
             $tmp .= $this->byte();
-            if (substr($buf, strlen($val) * -1) === $val) {
+            if (substr($tmp, strlen($val) * -1) === $val) {
                 break;
             }
         }

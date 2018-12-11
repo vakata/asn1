@@ -11,13 +11,10 @@ class OCSPRequest extends Structure
         string $algorithm,
         string $issuerNameHash,
         string $issuerKeyHash,
-        string $serialNumber,
-        string $requestor = null
+        string $serialNumber
     ) {
         $src = [
             'tbsRequest' => [
-                // 'version' => 'v1',
-                // 'requestorName' => 'other:' . ($requestor ?? 'vakata\\ASN1'),
                 'requestList' => [
                     [
                         'reqCert' => [
