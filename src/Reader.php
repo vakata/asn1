@@ -13,7 +13,7 @@ class Reader
     public static function fromString($data)
     {
         $stream = fopen('php://temp', 'r+');
-        if ($stream) {
+        if ($stream !== false) {
             fwrite($stream, $data);
             rewind($stream);
             return new static($stream);
