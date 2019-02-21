@@ -57,7 +57,13 @@ class P7S extends Structure
                                 'tag' => ASN1::TYPE_SEQUENCE,
                                 'children' => [
                                     'version' => [ 'tag' => ASN1::TYPE_INTEGER ],
-                                    'sid' => [ 'tag' => ASN1::TYPE_ANY_DER ],
+                                    'sid' => [
+                                        'tag' => ASN1::TYPE_SEQUENCE,
+                                        'children' => [
+                                            'issuer' => [ 'tag' => ASN1::TYPE_ANY ],
+                                            'serial' => [ 'tag' => ASN1::TYPE_INTEGER, 'base' => 16 ]
+                                        ]
+                                    ],
                                     'digest_algo' => Common::AlgorithmIdentifier(),
                                     'signed' => [
                                         'name' => 0,
