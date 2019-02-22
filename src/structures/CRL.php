@@ -40,6 +40,7 @@ class CRL extends Structure
                         ],
                         'revokedCertificates' => [
                             'tag' => ASN1::TYPE_SEQUENCE,
+                            'optional' => true,
                             'repeat' => [
                                 'tag' => ASN1::TYPE_SEQUENCE,
                                 'children' => [
