@@ -274,7 +274,10 @@ class Decoder
         if ($skeleton === null && $this->reader->pos() !== 0) {
             $this->reader->rewind();
         }
-        $skeleton = $skeleton ?? $this->structure()[0];
+        $skeleton = $skeleton ?? $this->structure()[0] ?? null;
+        if (!isset($skeleton)) {
+            throw new ASN1Exception('No decoded data for map');
+        }
         if ($skeleton['class'] !== ASN1::CLASS_UNIVERSAL) {
             if ($map['tag'] === ASN1::TYPE_CHOICE) {
                 foreach ($map['children'] as $child) {
