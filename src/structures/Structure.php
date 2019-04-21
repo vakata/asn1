@@ -45,9 +45,10 @@ abstract class Structure
      *
      * @return array
      */
-    public function structure()
+    public function &structure()
     {
-        return $this->data->structure();
+        $temp = $this->data->structure();
+        return $temp;
     }
     /**
      * Get the mapped or values only view of the parsed data.
@@ -55,9 +56,10 @@ abstract class Structure
      * @param boolean $valuesOnly should only values be returned or the map be used - defaults to `false` - use a map
      * @return mixed
      */
-    public function toArray(bool $valuesOnly = false)
+    public function &toArray(bool $valuesOnly = false)
     {
-        return $valuesOnly ? $this->data->values() : $this->data->map(static::map());
+        $temp = $valuesOnly ? $this->data->values() : $this->data->map(static::map());
+        return $temp;
     }
     public function __toString()
     {

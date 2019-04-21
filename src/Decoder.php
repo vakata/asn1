@@ -42,6 +42,11 @@ class Decoder
         return new static(Reader::fromFile($path));
     }
 
+    public function getReader()
+    {
+        return $this->reader;
+    }
+
     protected function header()
     {
         $start = $this->reader->pos();
@@ -98,7 +103,7 @@ class Decoder
             'content_length' => $length
         ];
     }
-    protected function decode($header)
+    protected function decode(&$header)
     {
         $contents = $header['content_length'] > 0 ?
             $this->reader->chunk($header['content_start'], $header['content_length']) :
@@ -189,7 +194,7 @@ class Decoder
      * @param mixed $max internal - do not use
      * @return mixed in most cases this is an array, as all complex structures are either a sequence or a set
      */
-    public function structure($max = null)
+    public function &structure($max = null)
     {
         $skeleton = [];
         while (!$this->reader->eof() && ($max === null || $this->reader->pos() < $max)) {
@@ -250,7 +255,7 @@ class Decoder
      * @param mixed $skeleton internal - do not use
      * @return mixed in most cases this is an array, as all complex structures are either a sequence or a set
      */
-    public function values($skeleton = null)
+    public function &values(&$skeleton = null)
     {
         $skeleton = $skeleton ?? $this->structure();
         foreach ($skeleton as $k => $v) {
@@ -269,8 +274,9 @@ class Decoder
      * @param mixed $skeleton internal - do not use
      * @return mixed in most cases this is an array, as all complex structures are either a sequence or a set
      */
-    public function map($map, $skeleton = null)
+    public function &map($map, &$skeleton = null)
     {
+        $null = null;
         if ($skeleton === null && $this->reader->pos() !== 0) {
             $this->reader->rewind();
         }
@@ -323,13 +329,14 @@ class Decoder
             if (!isset($map['optional']) || !$map['optional']) {
                 throw new ASN1Exception('Decoded data does not match mapping - ' . $skeleton['tag']);
             }
-            return null;
+            return $null;
         } else {
             switch ($map['tag']) {
                 case ASN1::TYPE_ANY_DER:
-                    return $this->reader->chunk($skeleton['start'], $skeleton['length']);
+                    $temp = $this->reader->chunk($skeleton['start'], $skeleton['length']);
+                    return $temp;
                 case ASN1::TYPE_ANY_SKIP:
-                    return null;
+                    return $null;
                 case ASN1::TYPE_ANY_RAW:
                     return $skeleton['value'] ?? null;
                 case ASN1::TYPE_SET:
@@ -341,7 +348,7 @@ class Decoder
                         return $result;
                     } else {
                         if (!isset($map['children'])) {
-                            return null;
+                            return $null;
                         }
                         $temp = $skeleton['children'];
                         $result = [];
@@ -414,7 +421,7 @@ class Decoder
                         return $result;
                     } else {
                         if (!isset($map['children'])) {
-                            return null;
+                            return $null;
                         }
                         $result = [];
                         foreach ($skeleton['children'] as $vv) {
@@ -468,17 +475,20 @@ class Decoder
                     }
                     break;
                 case ASN1::TYPE_OBJECT_IDENTIFIER:
-                    return isset($map['resolve']) && $map['resolve'] ?
+                    $temp = isset($map['resolve']) && $map['resolve'] ?
                         ASN1::OIDtoText($skeleton['value']) :
                         $skeleton['value'];
+                    return $temp;
                 case ASN1::TYPE_OCTET_STRING:
                     if (isset($map['der']) && $map['der']) {
                         $temp = static::fromString($skeleton['value']);
-                        return isset($map['map']) ? $temp->map($map['map']) : $temp->values();
+                        $temp = isset($map['map']) ? $temp->map($map['map']) : $temp->values();
+                        return $temp;
                     } else {
-                        return isset($map['raw']) && $map['raw'] ?
+                        $temp = isset($map['raw']) && $map['raw'] ?
                             $skeleton['value'] :
                             base64_encode($skeleton['value']);
+                        return $temp;
                     }
                     break;
                 case ASN1::TYPE_INTEGER:
