@@ -51,7 +51,7 @@ class LazyDecoder extends Decoder
         }
         return $this->decode($header);
     }
-    public function &lazyParse($start = null, $max = null, string $mode = 'header')
+    public function lazyParse($start = null, $max = null, string $mode = 'header')
     {
         if ($start !== null) {
             $this->reader->seek($start);
@@ -85,28 +85,21 @@ class LazyDecoder extends Decoder
                 return new LazyArray($skeleton, function ($v) { return $this->lazyDecodeHeader($v); });
         }
     }
-    public function &lazyStructure()
+    public function structure($max = null)
     {
         return $this->lazyParse(0, null, 'header');
     }
-    public function &lazyValues()
+    public function values($skeleton = null)
     {
         return $this->lazyParse(0, null, 'value');
     }
-    /**
-     * Map the parsed data to a map
-     *
-     * @param array $map the map to use - look in the structure classes for example map arrays
-     * @param mixed $skeleton internal - do not use
-     * @return mixed in most cases this is an array, as all complex structures are either a sequence or a set
-     */
-    public function &lazyMap($map, &$skeleton = null)
+    public function map($map, $skeleton = null)
     {
         $null = null;
         if ($skeleton === null && $this->reader->pos() !== 0) {
             $this->reader->rewind();
         }
-        $skeleton = $skeleton ?? $this->lazyStructure()[0] ?? null;
+        $skeleton = $skeleton ?? $this->structure()[0] ?? null;
         if (!isset($skeleton)) {
             throw new ASN1Exception('No decoded data for map');
         }
@@ -169,7 +162,7 @@ class LazyDecoder extends Decoder
                     if (isset($map['repeat'])) {
                         $mapRepeat = $map['repeat'];
                         return new LazyArray($skeleton['children']->rawData(), function ($v) use ($mapRepeat) {
-                            return $this->lazyMap($mapRepeat, $this->lazyDecodeHeader($v));
+                            return $this->map($mapRepeat, $this->lazyDecodeHeader($v));
                         });
                     } else {
                         if (!isset($map['children'])) {
@@ -190,7 +183,7 @@ class LazyDecoder extends Decoder
                                             } else {
                                                 $vv = $vv['children'][0] ?? null;
                                             }
-                                            $result[$k] = $this->lazyMap($v, $vv);
+                                            $result[$k] = $this->map($v, $vv);
                                             $vv['map'] = $v;
                                             $result[$k] = $vv;
                                             unset($temp[$kk]);
@@ -224,7 +217,7 @@ class LazyDecoder extends Decoder
                                     )
                                 ) {
                                     try {
-                                        $result[$k] = $this->lazyMap($v, $vv);
+                                        $result[$k] = $this->map($v, $vv);
                                         $vv['map'] = $v;
                                         $result[$k] = $vv;
                                         unset($temp[$kk]);
@@ -239,7 +232,7 @@ class LazyDecoder extends Decoder
                             }
                         }
                         return new LazyArray($result, function ($v) {
-                            return $v === null ? null : $this->lazyMap($v['map'], $this->lazyDecodeHeader($v));
+                            return $v === null ? null : $this->map($v['map'], $this->lazyDecodeHeader($v));
                         });
                     }
                     break;
@@ -247,7 +240,7 @@ class LazyDecoder extends Decoder
                     if (isset($map['repeat'])) {
                         $mapRepeat = $map['repeat'];
                         return new LazyArray($skeleton['children']->rawData(), function ($v) use ($mapRepeat) {
-                            return $this->lazyMap($mapRepeat, $this->lazyDecodeHeader($v));
+                            return $this->map($mapRepeat, $this->lazyDecodeHeader($v));
                         });
                     } else {
                         if (!isset($map['children'])) {
@@ -286,7 +279,7 @@ class LazyDecoder extends Decoder
                                     )
                                 ) {
                                     try {
-                                        $temp = $this->lazyMap($v, $vv);
+                                        $temp = $this->map($v, $vv);
                                         $vv['map'] = $v;
                                         $result[$k] = $vv;
                                         unset($map['children'][$k]);
@@ -304,7 +297,7 @@ class LazyDecoder extends Decoder
                             }
                         }
                         return new LazyArray($result, function ($v) {
-                            return $v === null ? null : $this->lazyMap($v['map'], $this->lazyDecodeHeader($v));
+                            return $v === null ? null : $this->map($v['map'], $this->lazyDecodeHeader($v));
                         });
                     }
                     break;

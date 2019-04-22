@@ -69,14 +69,4 @@ class CRL extends Structure
             ]
         ];
     }
-    public function revoked()
-    {
-        $rd = $this->data->getReader();
-        $ld = new \vakata\asn1\LazyDecoder($rd);
-        $mp = static::map();
-        foreach ($ld->lazyMap($mp)['tbsCertList']['revokedCertificates']->rawData() as $v) {
-            yield \vakata\asn1\Decoder::fromString($rd->chunk($v['start'], $v['length']))
-                ->map($mp['children']['tbsCertList']['children']['revokedCertificates']['repeat']);
-        }
-    }
 }

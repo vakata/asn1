@@ -103,7 +103,7 @@ class Decoder
             'content_length' => $length
         ];
     }
-    protected function decode(&$header)
+    protected function decode($header)
     {
         $contents = $header['content_length'] > 0 ?
             $this->reader->chunk($header['content_start'], $header['content_length']) :
@@ -194,7 +194,7 @@ class Decoder
      * @param mixed $max internal - do not use
      * @return mixed in most cases this is an array, as all complex structures are either a sequence or a set
      */
-    public function &structure($max = null)
+    public function structure($max = null)
     {
         $skeleton = [];
         while (!$this->reader->eof() && ($max === null || $this->reader->pos() < $max)) {
@@ -255,7 +255,7 @@ class Decoder
      * @param mixed $skeleton internal - do not use
      * @return mixed in most cases this is an array, as all complex structures are either a sequence or a set
      */
-    public function &values(&$skeleton = null)
+    public function values($skeleton = null)
     {
         $skeleton = $skeleton ?? $this->structure();
         foreach ($skeleton as $k => $v) {
@@ -274,7 +274,7 @@ class Decoder
      * @param mixed $skeleton internal - do not use
      * @return mixed in most cases this is an array, as all complex structures are either a sequence or a set
      */
-    public function &map($map, &$skeleton = null)
+    public function map($map, $skeleton = null)
     {
         $null = null;
         if ($skeleton === null && $this->reader->pos() !== 0) {
