@@ -14,7 +14,7 @@ class OCSPResponse extends Structure
         $map = static::map();
         $map['children']['responseBytes']['children']['response']['map']['children']['tbsResponseData']['tag'] =
             ASN1::TYPE_ANY_DER;
-        $temp = $this->data->map($map);
+        $temp = \vakata\asn1\Decoder::fromString($this->getReader()->chunk(0))->map($map);
         return $temp['responseBytes']['response']['tbsResponseData'];
     }
 
