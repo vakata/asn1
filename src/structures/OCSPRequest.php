@@ -13,13 +13,17 @@ class OCSPRequest extends Structure
         string $issuerKeyHash,
         string $serialNumber
     ) {
+        $alg = ASN1::TextToOID(strtolower($algorithm));
+        if ($alg === strtolower($algorithm)) {
+            $alg = ASN1::TextToOID('md5');
+        }
         $src = [
             'tbsRequest' => [
                 'requestList' => [
                     [
                         'reqCert' => [
                             'hashAlgorithm' => [
-                                'algorithm' => ASN1::$oids[strtolower($algorithm)] ?? ASN1::$oids['md5']
+                                'algorithm' => $alg
                             ],
                             'issuerNameHash' => $issuerNameHash,
                             'issuerKeyHash' => $issuerKeyHash,

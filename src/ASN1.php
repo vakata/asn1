@@ -214,7 +214,7 @@ class ASN1
         'rsaEncryption' => '1.2.840.113549.1.1.1',
         'md2WithRSAEncryption' => '1.2.840.113549.1.1.2',
         'md5WithRSAEncryption' => '1.2.840.113549.1.1.4',
-        'sha1WithRSAEncryption' => '1.2.840.113549.1.1.5',
+        'sha1WithRSAEncryption' => ['1.2.840.113549.1.1.5', '1.3.14.3.2.29'],
         'dhpublicnumber' => '1.2.840.10046.2.1',
         'keyExchangeAlgorithm' => '2.16.840.1.101.2.1.1.22',
         'ansi-X9-62' => '1.2.840.10045',
@@ -306,11 +306,22 @@ class ASN1
     ];
     public static function OIDtoText($id)
     {
-        $result = array_search($id, static::$oids);
-        return $result === false ? $id : $result;
+        foreach (static::$oids as $k => $v) {
+            if (is_array($v) && in_array($id, $v)) {
+                return $k;
+            }
+            if (!is_array($v) && $id === $v) {
+                return $k;
+            }
+        }
+        return $id;
     }
     public static function TextToOID($text)
     {
-        return static::$oids[$text] ?? $text;
+        $res = static::$oids[$text] ?? null;
+        if (is_array($res)) {
+            $res = $res[0];
+        }
+        return $res ?? $text;
     }
 }
