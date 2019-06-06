@@ -19,7 +19,8 @@ class CRL extends Structure
                     'children' => [
                         'version' => [
                             'tag' => ASN1::TYPE_INTEGER,
-                            'map' => [1=>'v1','v2','v3']
+                            'map' => [1=>'v1','v2','v3'],
+                            'optional' => true
                         ],
                         'signature' => Common::AlgorithmIdentifier(),
                         'issuer' => Common::RDNSequence(),
@@ -59,7 +60,7 @@ class CRL extends Structure
                                 ]
                             ]
                         ],
-                        'extensions' => Common::extensions() + [ 'name' => 0, 'implicit' => false ]
+                        'extensions' => Common::extensions() + [ 'name' => 0, 'implicit' => false, 'optional' => true ]
                     ]
                 ],
                 'signatureAlgorithm' => Common::AlgorithmIdentifier(),
