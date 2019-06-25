@@ -161,7 +161,8 @@ class LazyDecoder extends Decoder
                 case ASN1::TYPE_SET:
                     if (isset($map['repeat'])) {
                         $mapRepeat = $map['repeat'];
-                        return new LazyArray($skeleton['children']->rawData(), function ($v) use ($mapRepeat) {
+                        $temp = $skeleton['children']->rawData();
+                        return new LazyArray($temp, function ($v) use ($mapRepeat) {
                             return $this->map($mapRepeat, $this->lazyDecodeHeader($v));
                         });
                     } else {
@@ -239,7 +240,8 @@ class LazyDecoder extends Decoder
                 case ASN1::TYPE_SEQUENCE:
                     if (isset($map['repeat'])) {
                         $mapRepeat = $map['repeat'];
-                        return new LazyArray($skeleton['children']->rawData(), function ($v) use ($mapRepeat) {
+                        $temp = $skeleton['children']->rawData();
+                        return new LazyArray($temp, function ($v) use ($mapRepeat) {
                             return $this->map($mapRepeat, $this->lazyDecodeHeader($v));
                         });
                     } else {
