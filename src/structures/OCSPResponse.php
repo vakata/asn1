@@ -131,7 +131,7 @@ class OCSPResponse extends Structure
                                                     ]
                                                 ]
                                             ],
-                                            'extensions' => Common::extensions() + [ 'name' => 0, 'implicit' => false ]
+                                            'extensions' => Common::extensions() + [ 'name' => 1, 'implicit' => false ]
                                         ]
                                     ],
                                     'signatureAlgorithm' => Common::AlgorithmIdentifier(),
