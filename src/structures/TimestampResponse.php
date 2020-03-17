@@ -98,9 +98,9 @@ class TimestampResponse extends Structure
                     'tag' => ASN1::TYPE_SEQUENCE,
                     'optional' => true,
                     'children' => [
-                        'seconds' => ['tag' => ASN1::TYPE_ANY, 'optional' => true ],
-                        'millis' => ['tag' => ASN1::TYPE_ANY, 'optional' => true ],
-                        'micros' => ['tag' => ASN1::TYPE_ANY, 'optional' => true ],
+                        'seconds' => ['tag' => ASN1::TYPE_INTEGER, 'optional' => true ],
+                        'millis' => ['tag' => ASN1::TYPE_INTEGER, 'optional' => true, 'name' => 0, 'implicit' => true ],
+                        'micros' => ['tag' => ASN1::TYPE_INTEGER, 'optional' => true, 'name' => 1, 'implicit' => true ],
                     ]
                 ],
                 'ordering' => [
