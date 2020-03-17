@@ -111,7 +111,11 @@ class Decoder
         if ($header['class'] !== ASN1::CLASS_UNIVERSAL) {
             return $contents;
         }
-        switch ($header['tag']) {
+        return $this->decodeContents($header['tag'], $header['constructed'], $contents);
+    }
+    protected function decodeContents($tag, $constructed, $contents)
+    {
+        switch ($tag) {
             case ASN1::TYPE_BOOLEAN:
                 return (bool)ord($contents[0]);
             case ASN1::TYPE_INTEGER:
@@ -122,7 +126,7 @@ class Decoder
                 // TODO: read the specs
                 return false;
             case ASN1::TYPE_BIT_STRING:
-                if ($header['constructed']) {
+                if ($constructed) {
                     $temp = static::fromString($contents)->values();
                     $real = '';
                     for ($i = 0; $i < count($temp) - 1; $i++) {
@@ -132,7 +136,7 @@ class Decoder
                 }
                 return $contents;
             case ASN1::TYPE_OCTET_STRING:
-                if ($header['constructed']) {
+                if ($constructed) {
                     return implode('', array_map(function ($v) {
                         return $v['value'];
                     }, static::fromString($contents)->values()));
@@ -159,7 +163,7 @@ class Decoder
             case ASN1::TYPE_GENERALIZED_TIME:
                 $format = 'YmdHis';
                 if (strpos($contents, '.') !== false) {
-                    $format .= '.u';
+                    $format .= '.v';
                 }
                 if ($contents[strlen($contents) - 1] == 'Z') {
                     $contents = substr($contents, 0, -1) . '+0000';
@@ -168,7 +172,7 @@ class Decoder
                     $format .= 'O';
                 }
                 $result = @DateTime::createFromFormat($format, $contents);
-                return $result ? $result->getTimestamp() : false;
+                return $result ? $result->format(strpos($contents, '.') !== false ? 'U.v' : 'U') : false;
             case ASN1::TYPE_OBJECT_IDENTIFIER:
                 $temp = ord($contents[0]);
                 $real = sprintf('%d.%d', floor($temp / 40), $temp % 40);
@@ -301,6 +305,9 @@ class Decoder
             if (isset($map['implicit']) && $map['implicit']) {
                 $skeleton['class'] = ASN1::CLASS_UNIVERSAL;
                 $skeleton['tag'] = $map['tag'];
+                if (isset($skeleton['value'])) {
+                    $skeleton['value'] = $this->decodeContents($skeleton['tag'], true, $skeleton['value']);
+                }
             } else {
                 $skeleton = $skeleton['children'][0] ?? null;
             }
@@ -362,6 +369,9 @@ class Decoder
                                             if (isset($v['implicit']) && $v['implicit']) {
                                                 $vv['class'] = ASN1::CLASS_UNIVERSAL;
                                                 $vv['tag'] = $map['tag'];
+                                                if (isset($vv['value'])) {
+                                                    $vv['value'] = $this->decodeContents($vv['tag'], true, $vv['value']);
+                                                }
                                             } else {
                                                 $vv = $vv['children'][0] ?? null;
                                             }
@@ -424,40 +434,46 @@ class Decoder
                             return $null;
                         }
                         $result = [];
-                        foreach ($skeleton['children'] as $vv) {
+                        foreach ($skeleton['children'] as $kk => $vv) {
                             foreach ($map['children'] as $k => $v) {
-                                if (isset($v['name']) && $vv['class'] !== ASN1::CLASS_UNIVERSAL &&
-                                    (int)$v['name'] === $vv['tag']
-                                ) {
-                                    if (isset($v['implicit']) && $v['implicit']) {
-                                        $vv['class'] = ASN1::CLASS_UNIVERSAL;
-                                        $vv['tag'] = $map['tag'];
+                                if (isset($v['name'])) {
+                                    $result[$k] = null;
+                                    if ($vv['class'] !== ASN1::CLASS_UNIVERSAL && (int)$v['name'] === $vv['tag']) {
+                                        if (isset($v['implicit']) && $v['implicit']) {
+                                            $vv['class'] = ASN1::CLASS_UNIVERSAL;
+                                            $vv['tag'] = $v['tag'];
+                                            if (isset($vv['value'])) {
+                                                $vv['value'] = $this->decodeContents($vv['tag'], true, $vv['value']);
+                                            }
+                                        } else {
+                                            $vv = $vv['children'][0] ?? null;
+                                        }
+                                        $result[$k] = $this->map($v, $vv);
+                                        unset($map['children'][$k]);
+                                        break;
                                     } else {
-                                        $vv = $vv['children'][0] ?? null;
+                                        if (!isset($v['optional']) || !$v['optional']) {
+                                            throw new ASN1Exception('Missing tagged type - ' . $k);
+                                        }
                                     }
-                                    $result[$k] = $this->map($v, $vv);
                                     unset($map['children'][$k]);
-                                    break;
+                                    continue;
                                 }
-                                if (!isset($v['name']) &&
-                                    (
-                                        $v['tag'] === $vv['tag'] ||
-                                        in_array(
-                                            $v['tag'],
-                                            [
-                                                ASN1::TYPE_ANY,
-                                                ASN1::TYPE_ANY_DER,
-                                                ASN1::TYPE_ANY_RAW,
-                                                ASN1::TYPE_ANY_SKIP,
-                                                ASN1::TYPE_CHOICE
-                                            ]
-                                        )
+                                if ($v['tag'] === $vv['tag'] ||
+                                    in_array(
+                                        $v['tag'],
+                                        [
+                                            ASN1::TYPE_ANY,
+                                            ASN1::TYPE_ANY_DER,
+                                            ASN1::TYPE_ANY_RAW,
+                                            ASN1::TYPE_ANY_SKIP,
+                                            ASN1::TYPE_CHOICE
+                                        ]
                                     )
                                 ) {
                                     try {
-                                        $temp = $this->map($v, $vv);
-                                        $result[$k] = $temp;
                                         unset($map['children'][$k]);
+                                        $result[$k] = $this->map($v, $vv);
                                         break;
                                     } catch (ASN1Exception $e) {
                                         // continue trying other children in case of failure
