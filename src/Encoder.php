@@ -83,13 +83,13 @@ class Encoder
                 return $temp;
             case ASN1::TYPE_INTEGER:
             case ASN1::TYPE_ENUMERATED:
-                if (!isset($mapping['mapping']) && isset($mapping['base']) && $mapping['base'] === 16) {
+                if (!isset($mapping['map']) && isset($mapping['base']) && $mapping['base'] === 16) {
                     $value = hex2bin($source);
                 } else {
-                    if (!isset($mapping['mapping'])) {
+                    if (!isset($mapping['map'])) {
                         $value = ASN1::toBase256($source, isset($mapping['base']) ? $mapping['base'] : 10);
                     } else {
-                        $value = array_search($source, $mapping['mapping']);
+                        $value = array_search($source, $mapping['map']);
                         if ($value === false) {
                             return false;
                         }
@@ -107,12 +107,12 @@ class Encoder
                 $value = @gmdate($format, strtotime($source)) . 'Z';
                 break;
             case ASN1::TYPE_BIT_STRING:
-                if (isset($mapping['mapping'])) {
-                    $mcnt = count($mapping['mapping']);
+                if (isset($mapping['map'])) {
+                    $mcnt = count($mapping['map']);
                     $bits = array_fill(0, $mcnt, 0);
                     $size = 0;
                     for ($i = 0; $i < $mcnt; $i++) {
-                        if (in_array($mapping['mapping'][$i], $source)) {
+                        if (in_array($mapping['map'][$i], $source)) {
                             $bits[$i] = 1;
                             $size = $i;
                         }
