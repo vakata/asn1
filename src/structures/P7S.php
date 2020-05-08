@@ -32,7 +32,7 @@ class P7S extends Structure
                                 "type" => [
                                     'tag' => ASN1::TYPE_OBJECT_IDENTIFIER
                                 ],
-                                'data' => [ 'tag' => ASN1::TYPE_ANY_DER, 'optional' => true ]
+                                'data' => [ 'tag' => ASN1::TYPE_ANY_DER, 'optional' => true, 'name' => 0 ]
                             ]
                         ],
                         'certificates' => [
