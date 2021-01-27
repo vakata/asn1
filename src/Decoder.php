@@ -142,6 +142,10 @@ class Decoder
                     }, static::fromString($contents)->values()));
                 }
                 return $contents;
+            case ASN1::TYPE_BMP_STRING:
+                return extension_loaded("iconv") ? iconv('UCS-2BE', 'UTF-8', $contents) : $contents;
+            case ASN1::TYPE_UNIVERSAL_STRING:
+                return extension_loaded("iconv") ? iconv('UCS-4BE', 'UTF-8', $contents) : $contents;
             case ASN1::TYPE_NULL:
                 return null;
             case ASN1::TYPE_UTC_TIME:
