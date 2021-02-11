@@ -84,6 +84,9 @@ class Encoder
             case ASN1::TYPE_INTEGER:
             case ASN1::TYPE_ENUMERATED:
                 if (!isset($mapping['map']) && isset($mapping['base']) && $mapping['base'] === 16) {
+                    if (strlen($source) % 2 == 1) {
+                        $source = '0' . $source;
+                    }
                     $value = hex2bin($source);
                 } else {
                     if (!isset($mapping['map'])) {
