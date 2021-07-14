@@ -138,6 +138,9 @@ class Decoder
             case ASN1::TYPE_OCTET_STRING:
                 if ($constructed) {
                     return implode('', array_map(function ($v) {
+                        if (!is_array($v)) {
+                            return $v;
+                        }
                         return $v['value'];
                     }, static::fromString($contents)->values()));
                 }
