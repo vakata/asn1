@@ -181,6 +181,8 @@ class Encoder
                         return static::encode($source, array('tag' => ASN1::TYPE_REAL) + $mapping);
                     case is_bool($source):
                         return static::encode($source, array('tag' => ASN1::TYPE_BOOLEAN) + $mapping);
+                    case is_string($source) && preg_match('(^(\d+\.?)+$)', $source):
+                        return static::encode($source, array('tag' => ASN1::TYPE_OBJECT_IDENTIFIER) + $mapping);
                     default:
                         throw new ASN1Exception('Unrecognized type');
                 }
