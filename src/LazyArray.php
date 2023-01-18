@@ -32,7 +32,7 @@ class LazyArray implements \ArrayAccess, \Iterator, \Countable
     {
         throw new \Exception('Not supported');
     }
-    public function current()
+    public function current(): mixed
     {
         return call_user_func($this->processor, current($this->data));
     }
