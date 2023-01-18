@@ -36,7 +36,7 @@ class LazyArray implements \ArrayAccess, \Iterator, \Countable
     {
         return call_user_func($this->processor, current($this->data));
     }
-    public function key()
+    public function key(): mixed
     {
         return key($this->data);
     }
@@ -56,7 +56,7 @@ class LazyArray implements \ArrayAccess, \Iterator, \Countable
     {
         return count($this->data);
     }
-    public function toArray()
+    public function toArray(): array
     {
         return iterator_to_array($this);
     }
