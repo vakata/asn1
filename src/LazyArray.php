@@ -7,7 +7,7 @@ class LazyArray implements \ArrayAccess, \Iterator, \Countable
     protected $data;
     protected $processor;
 
-    public function __construct(array &$data = [], callable $processor = null)
+    public function __construct(array &$data = [], ?callable $processor = null)
     {
         $this->data = $data;
         $this->processor = $processor ?? function ($v) { return $v; };
