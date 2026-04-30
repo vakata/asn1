@@ -38,11 +38,11 @@ class Reader
         if ($amount === null) {
             $buff = '';
             while (!feof($this->stream)) {
-                $buff .= fread($this->stream, 4096);
+                $buff .= (string)fread($this->stream, 4096);
             }
             return $buff;
         }
-        return fread($this->stream, $amount);
+        return (string)fread($this->stream, $amount);
     }
     public function readUntil($val, $include = true)
     {

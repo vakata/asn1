@@ -58,7 +58,12 @@ class LazyDecoder extends Decoder
         }
         $skeleton = [];
         while (!$this->reader->eof() && ($max === null || $this->reader->pos() < $max)) {
-            $header = $this->header();
+            $start = $this->reader->pos();
+            $byte = $this->reader->byte();
+            if ($byte === '') {
+                break;
+            }
+            $header = $this->header($start, $byte);
             if ($header['class'] === 0 && $header['tag'] === 0) {
                 if ($max === null) {
                     break;

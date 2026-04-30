@@ -80,7 +80,7 @@ abstract class Structure
         );
         $result = [];
         foreach ($iterator as $k => $v) {
-            if (strlen($v)) {
+            if (strlen((string)$v)) {
                 $result[] = str_repeat(' ', $iterator->getDepth()) . $v;
             }
         }

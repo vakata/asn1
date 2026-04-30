@@ -47,10 +47,9 @@ class Decoder
         return $this->reader;
     }
 
-    protected function header()
+    protected function header($start, $byte)
     {
-        $start = $this->reader->pos();
-        $identifier = ord($this->reader->byte());
+        $identifier = ord($byte);
         $constructed = ($identifier >> 5) & 1; // 6th bit
         $class = ($identifier >> 6) & 3; // 7th and 8th bits
         $tag = $identifier & 31; // first 5 bits
@@ -209,7 +208,12 @@ class Decoder
     {
         $skeleton = [];
         while (!$this->reader->eof() && ($max === null || $this->reader->pos() < $max)) {
-            $header = $this->header();
+            $start = $this->reader->pos();
+            $byte = $this->reader->byte();
+            if ($byte === '') {
+                break;
+            }
+            $header = $this->header($start, $byte);
             if ($header['class'] === 0 && $header['tag'] === 0) {
                 if ($max === null) {
                     break;
